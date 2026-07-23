@@ -3,7 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
 [vars]
-WEB_ORIGIN = "http://localhost:5173"
+# 本番の値。ローカル開発では .dev.vars で localhost に上書きする
+WEB_ORIGIN = "https://logue-web.pages.dev"
 
 [[d1_databases]]
 binding = "DB"
