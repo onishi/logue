@@ -60,13 +60,13 @@
 
 ## Phase 1: 認証基盤
 
-- [ ] Google Cloud Console で OAuth クライアント作成（開発用・本番用）
-- [ ] Workers 上に Google OAuth 2.0 Authorization Code Flow を実装
-- [ ] コールバック処理・トークン検証・ユーザー作成/紐付け（`users` テーブル）
-- [ ] セッション発行（署名付き Cookie、有効期限・リフレッシュ方針の設計）
-- [ ] フロントエンドのログイン/ログアウト UI・認証状態管理
-- [ ] 認証必須 API の権限チェックミドルウェア
-- [ ] 認証まわりのユニットテスト
+- [ ] Google Cloud Console で OAuth クライアント作成（開発用・本番用）※ユーザー側の作業待ち
+- [x] Workers 上に Google OAuth 2.0 Authorization Code Flow を実装（PKCE 対応）
+- [x] コールバック処理・トークン検証・ユーザー作成/紐付け（`users` テーブル）
+- [x] セッション発行（署名付き Cookie、有効期限・リフレッシュ方針の設計）
+- [x] フロントエンドのログイン/ログアウト UI・認証状態管理
+- [x] 認証必須 API の権限チェックミドルウェア（`requireAuth`）
+- [x] 認証まわりのユニットテスト
 
 ## Phase 2: データモデル & API 基盤
 

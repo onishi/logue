@@ -5,6 +5,6 @@ import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <App apiBaseUrl={import.meta.env.VITE_API_BASE_URL} />
   </StrictMode>,
 );
