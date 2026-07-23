@@ -14,6 +14,9 @@
 - 本番: Cloudflare Pages のプロジェクト設定で環境変数を登録
 - `VITE_` プレフィックスの値はビルド時にクライアントバンドルへ埋め込まれるため、
   秘匿情報（クライアントシークレット等）は置かない
+- Google OAuth のクライアント ID/シークレットはフロントエンドには渡さない。ログインは
+  `apps/api` の `/api/auth/login` へのフルページ遷移で行うため、`apps/web` 側では
+  Google 関連の値を保持しない
 
 ## CI（GitHub Actions）
 

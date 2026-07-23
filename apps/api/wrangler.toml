@@ -2,6 +2,9 @@ name = "logue-api"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
+[vars]
+WEB_ORIGIN = "http://localhost:5173"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "logue-db"
