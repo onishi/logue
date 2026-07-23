@@ -48,15 +48,15 @@
 
 ## Phase 0: プロジェクト基盤整備
 
-- [ ] モノレポ構成のセットアップ（npm workspaces）
-- [ ] `apps/web`（Vite + React + TS strict）雛形作成
-- [ ] `apps/api`（Cloudflare Workers + Hono + TS strict）雛形作成
-- [ ] `packages/shared`（共通型・Zod スキーマ）雛形作成
-- [ ] ESLint / Prettier 設定
-- [ ] Jest 設定（各パッケージ共通の設定を `packages/shared` 等に集約）
-- [ ] Wrangler 設定（`wrangler.toml`）、D1 データベース作成
-- [ ] GitHub Actions CI（lint / typecheck / test）
-- [ ] `.env` / secrets 管理方針の整理（Google OAuth クライアント情報など）
+- [x] モノレポ構成のセットアップ（npm workspaces）
+- [x] `apps/web`（Vite + React + TS strict）雛形作成
+- [x] `apps/api`（Cloudflare Workers + Hono + TS strict）雛形作成
+- [x] `packages/shared`（共通型・Zod スキーマ）雛形作成
+- [x] ESLint / Prettier 設定
+- [x] Jest 設定（各パッケージ共通の設定を `packages/shared` 等に集約）
+- [x] Wrangler 設定（`wrangler.toml`）、D1 データベース作成
+- [x] GitHub Actions CI（lint / typecheck / test）
+- [x] `.env` / secrets 管理方針の整理（Google OAuth クライアント情報など）
 
 ## Phase 1: 認証基盤
 
