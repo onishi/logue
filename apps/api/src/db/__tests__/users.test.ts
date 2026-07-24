@@ -1,9 +1,9 @@
-import { createFakeD1 } from "../../testing/fakeD1";
+import { createTestD1 } from "../../testing/testD1";
 import { createUser, findUserByGoogleSub, findUserById, toPublicUser } from "../users";
 
 describe("db/users", () => {
   it("creates a user and finds it by google_sub / id", async () => {
-    const db = createFakeD1();
+    const db = createTestD1();
 
     const created = await createUser(db, {
       googleSub: "google-sub-1",
@@ -25,7 +25,7 @@ describe("db/users", () => {
   });
 
   it("maps a user row to the public user shape", async () => {
-    const db = createFakeD1();
+    const db = createTestD1();
     const created = await createUser(db, {
       googleSub: "google-sub-2",
       email: "hanako@example.com",
