@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import authRoutes from "./auth/routes";
+import entriesRoutes from "./entries/routes";
+import metricGroupsRoutes from "./metricGroups/routes";
+import metricsRoutes from "./metrics/routes";
 import type { AuthVariables } from "./auth/middleware";
 import type { Env } from "./env";
 
@@ -16,5 +19,8 @@ app.use("/api/*", (c, next) =>
 app.get("/api/health", (c) => c.json({ status: "ok" }));
 
 app.route("/api/auth", authRoutes);
+app.route("/api/metric-groups", metricGroupsRoutes);
+app.route("/api/metrics", metricsRoutes);
+app.route("/api/entries", entriesRoutes);
 
 export default app;

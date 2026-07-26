@@ -31,13 +31,13 @@
 
 ## データモデル（設計方針）
 
-- `users` - Google アカウント連携のユーザー（実装済み）
-- `metric_groups` - metric をまとめるグループ（例:「体組成」「筋トレ」「食事」など、ユーザーが自由作成）。名前・表示順を持つ（未実装）
+- `users` - Google アカウント連携のユーザー
+- `metric_groups` - metric をまとめるグループ（例:「体組成」「筋トレ」「食事」など、ユーザーが自由作成）。名前・表示順を持つ
 - `metrics` - ユーザーが定義する記録項目。種別（`number` / `choice` / `text`）、単位、選択肢、表示順、
-  所属する `metric_group`、アーカイブ状態（`is_archived`）を持つ（未実装）
-- `entries` - 実際の記録データ（metric_id, user_id, value, recorded_at など）（未実装）
-- `choice_options` - `choice` 型 metric の選択肢マスタ（未実装）
-- `user_settings` - 表示設定・単位設定など（未実装）
+  所属する `metric_group`、アーカイブ状態（`is_archived`）を持つ
+- `entries` - 実際の記録データ（metric_id, user_id, value, recorded_at など）
+- `choice_options` - `choice` 型 metric の選択肢マスタ
+- `user_settings` - 表示設定・単位設定など（テーブルのみ作成済み。項目設計は Phase 4 で拡張）
 
 使わなくなった metric は削除せず `is_archived` フラグで非表示にする方針（記録入力・一覧には出さないが、
 過去の entries とグラフには使い続けられるようにする）。体重・ファスティング・筋トレ・食事なども含め、
@@ -45,14 +45,16 @@
 
 ## 現在の実装状況
 
-現時点で実装済みなのは **Phase 0（プロジェクト基盤）** と **Phase 1（認証基盤）**。
-metric / entry まわりの機能（Phase 2 以降）は未実装で、フロントエンドはログイン状態の確認・
+現時点で実装済みなのは **Phase 0（プロジェクト基盤）**・**Phase 1（認証基盤）**・
+**Phase 2（データモデル & API 基盤）**。metric / entry の CRUD API は揃っているが、
+それらを操作する画面（Phase 3）はまだなく、フロントエンドはログイン状態の確認・
 ログイン／ログアウトのみ行うプレースホルダー画面。
 
 ### 実装済み
 
 - モノレポ基盤（npm workspaces / ESLint / Prettier / Jest / TypeScript strict）
-- Cloudflare Workers + Hono の API 雛形、D1 データベースと `users` テーブルのマイグレーション
+- Cloudflare Workers + Hono の API 雛形、D1 データベースマイグレーション
+  （`users`, `metric_groups`, `metrics`, `choice_options`, `entries`, `user_settings`）
 - Google OAuth 2.0 Authorization Code Flow（PKCE 対応）によるログイン
   - `GET /api/auth/login` - Google 認可画面へリダイレクト（state・PKCE code_verifier を Cookie に保存）
   - `GET /api/auth/callback` - コールバック処理、トークン検証、ユーザー作成/紐付け、セッション発行
@@ -61,13 +63,20 @@ metric / entry まわりの機能（Phase 2 以降）は未実装で、フロン
   - `GET /api/health` - ヘルスチェック
 - セッション管理: 署名付き Cookie（有効期限30日、残り7日を切ったら自動延長）
 - 認証必須 API 向けミドルウェア（`requireAuth`）
+- 記録項目（metric）・記録項目グループ（metric_group）・記録（entry）の CRUD API（すべて要認証、
+  リクエストボディは `packages/shared` の Zod スキーマでバリデーション）
+  - `GET/POST /api/metric-groups`, `PATCH/DELETE /api/metric-groups/:id`, `PUT /api/metric-groups/reorder`
+  - `GET/POST /api/metrics`, `PATCH/DELETE /api/metrics/:id`, `PUT /api/metrics/reorder`
+    （`type: "choice"` の場合は選択肢 `choiceOptions` を同時に作成/更新）
+  - `GET/POST /api/entries`（`metricId`/`from`/`to` で絞り込み）, `PATCH/DELETE /api/entries/:id`
+    （`number`/`choice` 型 metric に対する値のバリデーションつき）
+- フロントエンド用の型安全な API クライアント（`apps/web/src/lib/{metricGroups,metrics,entries}Api.ts`）
 - フロントエンドのログイン/ログアウト UI・認証状態管理（`useAuth` フック）
 - GitHub Actions CI（format check / lint / typecheck / test）
 
-### 未実装（Phase 2 以降、詳細は plan.md）
+### 未実装（Phase 3 以降、詳細は plan.md）
 
-- metrics / entries などのデータモデルとその CRUD API
-- 記録項目管理画面・動的記録入力フォーム・記録一覧
+- 記録項目管理画面・動的記録入力フォーム・記録一覧などの UI（Phase 2 の API を利用する画面）
 - ユーザー設定・表示カスタマイズ
 - グラフ・可視化（移動平均等）
 - PWA 化・ダークモード等の UI/UX 仕上げ

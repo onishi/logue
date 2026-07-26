@@ -70,12 +70,12 @@
 
 ## Phase 2: データモデル & API 基盤
 
-- [ ] D1 マイグレーション作成（`users`, `metric_groups`, `metrics`, `entries`, `choice_options`, `user_settings`）
-- [ ] `packages/shared` に Zod スキーマ・型定義を集約（API 入出力のバリデーション兼用）
-- [ ] metrics CRUD API（記録項目の作成・編集・削除・並び替え）
-- [ ] entries CRUD API（記録の作成・編集・削除・期間指定取得）
-- [ ] API のユニット/結合テスト
-- [ ] API クライアント（`packages/shared` 経由でフロントから型安全に呼び出し）
+- [x] D1 マイグレーション作成（`users`, `metric_groups`, `metrics`, `entries`, `choice_options`, `user_settings`）
+- [x] `packages/shared` に Zod スキーマ・型定義を集約（API 入出力のバリデーション兼用）
+- [x] metrics CRUD API（記録項目の作成・編集・削除・並び替え）
+- [x] entries CRUD API（記録の作成・編集・削除・期間指定取得）
+- [x] API のユニット/結合テスト
+- [x] API クライアント（`packages/shared` 経由でフロントから型安全に呼び出し）
 
 ## Phase 3: 記録項目管理・汎用記録入力（MVP）
 
