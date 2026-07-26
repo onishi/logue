@@ -37,7 +37,8 @@
   所属する `metric_group`、アーカイブ状態（`is_archived`）を持つ
 - `entries` - 実際の記録データ（metric_id, user_id, value, recorded_at など）
 - `choice_options` - `choice` 型 metric の選択肢マスタ
-- `user_settings` - 表示設定・単位設定など（テーブルのみ作成済み。項目設計は Phase 4 で拡張）
+- `user_settings` - 表示設定（現状はテーマのみ。`light` / `dark` を明示的に保存し、未設定時は
+  端末の `prefers-color-scheme` に従う「system」として扱う）
 
 使わなくなった metric は削除せず `is_archived` フラグで非表示にする方針（記録入力・一覧には出さないが、
 過去の entries とグラフには使い続けられるようにする）。体重・ファスティング・筋トレ・食事なども含め、
@@ -46,9 +47,10 @@
 ## 現在の実装状況
 
 現時点で実装済みなのは **Phase 0（プロジェクト基盤）**・**Phase 1（認証基盤）**・
-**Phase 2（データモデル & API 基盤）**・**Phase 3（記録項目管理・汎用記録入力の MVP）**。
-「記録項目をユーザーが自分で定義し、それに対して記録する」という一連の操作が一通り画面から
-行える状態（オンボーディング用テンプレート機能は任意項目のため未実装）。
+**Phase 2（データモデル & API 基盤）**・**Phase 3（記録項目管理・汎用記録入力の MVP）**・
+**Phase 4（ユーザー設定・表示カスタマイズ）**。「記録項目をユーザーが自分で定義し、それに対して
+記録する」という一連の操作が一通り画面から行える状態
+（オンボーディング用テンプレート機能は任意項目のため未実装）。
 
 ### 実装済み
 
@@ -70,8 +72,10 @@
     （`type: "choice"` の場合は選択肢 `choiceOptions` を同時に作成/更新）
   - `GET/POST /api/entries`（`metricId`/`from`/`to` で絞り込み）, `PATCH/DELETE /api/entries/:id`
     （`number`/`choice` 型 metric に対する値のバリデーションつき）
-- フロントエンド用の型安全な API クライアント（`apps/web/src/lib/{metricGroups,metrics,entries}Api.ts`）
-  と、それをラップした React フック（`apps/web/src/hooks/use{MetricGroups,Metrics,Entries}.ts`）
+  - `GET/PATCH /api/user-settings`（テーマ設定の取得・更新）
+- フロントエンド用の型安全な API クライアント
+  （`apps/web/src/lib/{metricGroups,metrics,entries,userSettings}Api.ts`）と、それをラップした
+  React フック（`apps/web/src/hooks/use{MetricGroups,Metrics,Entries,UserSettings}.ts`）
 - フロントエンドのログイン/ログアウト UI・認証状態管理（`useAuth` フック）
 - 記録項目管理画面（`apps/web/src/features/metrics/MetricManagementScreen.tsx`）
   - 記録項目グループの追加・改名・並び替え（↑↓）・削除
@@ -83,12 +87,17 @@
   記録項目をグループ単位でセクション表示し、種別に応じた入力 UI（数値/選択肢セレクト/自由入力）を出し分け
 - 記録一覧・タイムライン画面（`apps/web/src/features/entries/EntryListScreen.tsx`）: グループ／記録項目で
   絞り込み、選択肢は選択肢ラベルで表示、数値は単位付きで表示、編集・削除に対応
+- ユーザー設定 API（`GET/PATCH /api/user-settings`）とテーマ設定画面
+  （`apps/web/src/features/settings/SettingsScreen.tsx`）
+  - テーマは「端末の設定に合わせる」「ライト」「ダーク」の3択。選択結果は `<html data-theme>` 属性に
+    反映し、CSS 側で `prefers-color-scheme` より優先させる形で色を切り替える
+  - `useUserSettings` フックはラジオボタン操作時の再描画が正しく戻らない React の controlled input の
+    挙動を避けるため、API 応答を待たず楽観的に state を更新する
 - GitHub Actions CI（format check / lint / typecheck / test）
 
-### 未実装（Phase 4 以降、詳細は plan.md）
+### 未実装（Phase 5 以降、詳細は plan.md）
 
 - （任意）オンボーディング用テンプレート機能（体重・ファスティングなどの metric 定義サンプル提示）
-- ユーザー設定・表示カスタマイズ
 - グラフ・可視化（移動平均等）
 - PWA 化・ダークモード等の UI/UX 仕上げ
 - 過去データ一括入力・Google スプレッドシート連携

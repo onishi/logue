@@ -4,6 +4,7 @@ import authRoutes from "./auth/routes";
 import entriesRoutes from "./entries/routes";
 import metricGroupsRoutes from "./metricGroups/routes";
 import metricsRoutes from "./metrics/routes";
+import userSettingsRoutes from "./userSettings/routes";
 import type { AuthVariables } from "./auth/middleware";
 import type { Env } from "./env";
 
@@ -22,5 +23,6 @@ app.route("/api/auth", authRoutes);
 app.route("/api/metric-groups", metricGroupsRoutes);
 app.route("/api/metrics", metricsRoutes);
 app.route("/api/entries", entriesRoutes);
+app.route("/api/user-settings", userSettingsRoutes);
 
 export default app;

@@ -42,6 +42,7 @@ describe("App", () => {
     afterEach(() => {
       // @ts-expect-error テスト用に差し替えた fetch を後片付けする
       delete globalThis.fetch;
+      delete document.documentElement.dataset.theme;
     });
 
     it("switches between the entry/list/metrics tabs", async () => {
@@ -59,6 +60,24 @@ describe("App", () => {
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: "記録一覧" })).toBeInTheDocument(),
       );
+    });
+
+    it("applies the selected theme to the document root", async () => {
+      render(<App apiBaseUrl={API_BASE_URL} />);
+      await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
+      expect(document.documentElement.dataset.theme).toBeUndefined();
+
+      fireEvent.click(screen.getByRole("button", { name: "設定" }));
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument(),
+      );
+
+      fireEvent.click(screen.getByRole("radio", { name: "ダーク" }));
+      await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+      await waitFor(() => expect(screen.getByRole("radio", { name: "ダーク" })).toBeChecked());
+
+      fireEvent.click(screen.getByRole("radio", { name: "端末の設定に合わせる" }));
+      await waitFor(() => expect(document.documentElement.dataset.theme).toBeUndefined());
     });
   });
 });
