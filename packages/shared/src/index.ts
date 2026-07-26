@@ -34,3 +34,10 @@ export {
 
 export type { Entry, CreateEntryInput, UpdateEntryInput } from "./types/entry";
 export { entrySchema, createEntryInputSchema, updateEntryInputSchema } from "./types/entry";
+
+export type { ThemeSetting, UserSettings, UpdateUserSettingsInput } from "./types/userSettings";
+export {
+  themeSettingSchema,
+  userSettingsSchema,
+  updateUserSettingsInputSchema,
+} from "./types/userSettings";

@@ -1,4 +1,12 @@
-import type { ChoiceOption, Entry, Metric, MetricGroup, MetricType } from "@logue/shared";
+import type {
+  ChoiceOption,
+  Entry,
+  Metric,
+  MetricGroup,
+  MetricType,
+  ThemeSetting,
+  UserSettings,
+} from "@logue/shared";
 
 // jsdom (apps/web の Jest テスト環境) はグローバル Response を提供しないため、
 // apiJson が参照する最小限の形（ok/status/json）だけを持つスタブを返す。
@@ -15,6 +23,7 @@ export function createMockApiServer(baseUrl: string) {
   const groups: MetricGroup[] = [];
   const metrics: Metric[] = [];
   const entries: Entry[] = [];
+  const userSettings: UserSettings = { theme: "system" };
 
   function json(body: unknown, status = 200): MockResponse {
     return { ok: status < 400, status, json: async () => body };
@@ -164,6 +173,14 @@ export function createMockApiServer(baseUrl: string) {
       return noContent();
     }
 
+    if (path === "/api/user-settings" && method === "GET") {
+      return json(userSettings);
+    }
+    if (path === "/api/user-settings" && method === "PATCH") {
+      if (body && "theme" in body) userSettings.theme = body.theme as ThemeSetting;
+      return json(userSettings);
+    }
+
     throw new Error(`mockApiServer: unhandled request ${method} ${path}`);
   }
 
@@ -171,5 +188,5 @@ export function createMockApiServer(baseUrl: string) {
     handle(typeof input === "string" ? input : input.toString(), init),
   ) as unknown as typeof fetch;
 
-  return { fetchMock, groups, metrics, entries, baseUrl };
+  return { fetchMock, groups, metrics, entries, userSettings, baseUrl };
 }

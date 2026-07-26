@@ -1,20 +1,73 @@
-import { useState } from "react";
+import type { User } from "@logue/shared";
+import { useEffect, useState } from "react";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
 import { MetricManagementScreen } from "./features/metrics/MetricManagementScreen";
+import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { useAuth } from "./hooks/useAuth";
+import { useUserSettings } from "./hooks/useUserSettings";
 
 const TABS = [
   { key: "entry", label: "記録する" },
   { key: "list", label: "記録一覧" },
   { key: "metrics", label: "記録項目管理" },
+  { key: "settings", label: "設定" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
 
+function AuthenticatedApp({
+  apiBaseUrl,
+  user,
+  onLogout,
+}: {
+  apiBaseUrl: string;
+  user: User;
+  onLogout: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<TabKey>("entry");
+  const { settings, setTheme } = useUserSettings(apiBaseUrl);
+
+  useEffect(() => {
+    if (settings.theme === "system") {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = settings.theme;
+    }
+  }, [settings.theme]);
+
+  return (
+    <div>
+      <p>{user.name ?? user.email} でログイン中</p>
+      <button type="button" onClick={onLogout}>
+        ログアウト
+      </button>
+
+      <nav>
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            aria-current={activeTab === tab.key ? "page" : undefined}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {activeTab === "entry" && <EntryFormScreen apiBaseUrl={apiBaseUrl} />}
+      {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} />}
+      {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
+      {activeTab === "settings" && (
+        <SettingsScreen theme={settings.theme} onChangeTheme={(t) => void setTheme(t)} />
+      )}
+    </div>
+  );
+}
+
 function App({ apiBaseUrl }: { apiBaseUrl: string }) {
   const auth = useAuth(apiBaseUrl);
-  const [activeTab, setActiveTab] = useState<TabKey>("entry");
 
   return (
     <main>
@@ -30,29 +83,11 @@ function App({ apiBaseUrl }: { apiBaseUrl: string }) {
       )}
 
       {auth.status === "authenticated" && (
-        <div>
-          <p>{auth.user.name ?? auth.user.email} でログイン中</p>
-          <button type="button" onClick={() => void auth.logout()}>
-            ログアウト
-          </button>
-
-          <nav>
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                aria-current={activeTab === tab.key ? "page" : undefined}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-
-          {activeTab === "entry" && <EntryFormScreen apiBaseUrl={apiBaseUrl} />}
-          {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} />}
-          {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
-        </div>
+        <AuthenticatedApp
+          apiBaseUrl={apiBaseUrl}
+          user={auth.user}
+          onLogout={() => void auth.logout()}
+        />
       )}
     </main>
   );
