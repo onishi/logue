@@ -46,9 +46,9 @@
 ## 現在の実装状況
 
 現時点で実装済みなのは **Phase 0（プロジェクト基盤）**・**Phase 1（認証基盤）**・
-**Phase 2（データモデル & API 基盤）**。metric / entry の CRUD API は揃っているが、
-それらを操作する画面（Phase 3）はまだなく、フロントエンドはログイン状態の確認・
-ログイン／ログアウトのみ行うプレースホルダー画面。
+**Phase 2（データモデル & API 基盤）**・**Phase 3（記録項目管理・汎用記録入力の MVP）**。
+「記録項目をユーザーが自分で定義し、それに対して記録する」という一連の操作が一通り画面から
+行える状態（オンボーディング用テンプレート機能は任意項目のため未実装）。
 
 ### 実装済み
 
@@ -71,12 +71,23 @@
   - `GET/POST /api/entries`（`metricId`/`from`/`to` で絞り込み）, `PATCH/DELETE /api/entries/:id`
     （`number`/`choice` 型 metric に対する値のバリデーションつき）
 - フロントエンド用の型安全な API クライアント（`apps/web/src/lib/{metricGroups,metrics,entries}Api.ts`）
+  と、それをラップした React フック（`apps/web/src/hooks/use{MetricGroups,Metrics,Entries}.ts`）
 - フロントエンドのログイン/ログアウト UI・認証状態管理（`useAuth` フック）
+- 記録項目管理画面（`apps/web/src/features/metrics/MetricManagementScreen.tsx`）
+  - 記録項目グループの追加・改名・並び替え（↑↓）・削除
+  - 記録項目の追加（数値/選択肢/自由入力の種別選択、数値は単位、選択肢は選択肢リストを同時入力）・
+    グループへの割り当て・並び替え・アーカイブ（再表示可）・削除
+  - 選択肢の編集は名前・グループなど他フィールドの編集とは別ボタンで保存し、既存 entries が参照する
+    選択肢 ID をむやみに再生成しないようにしている
+- 動的記録入力フォーム（`apps/web/src/features/entries/EntryFormScreen.tsx`）: アーカイブ済みを除く
+  記録項目をグループ単位でセクション表示し、種別に応じた入力 UI（数値/選択肢セレクト/自由入力）を出し分け
+- 記録一覧・タイムライン画面（`apps/web/src/features/entries/EntryListScreen.tsx`）: グループ／記録項目で
+  絞り込み、選択肢は選択肢ラベルで表示、数値は単位付きで表示、編集・削除に対応
 - GitHub Actions CI（format check / lint / typecheck / test）
 
-### 未実装（Phase 3 以降、詳細は plan.md）
+### 未実装（Phase 4 以降、詳細は plan.md）
 
-- 記録項目管理画面・動的記録入力フォーム・記録一覧などの UI（Phase 2 の API を利用する画面）
+- （任意）オンボーディング用テンプレート機能（体重・ファスティングなどの metric 定義サンプル提示）
 - ユーザー設定・表示カスタマイズ
 - グラフ・可視化（移動平均等）
 - PWA 化・ダークモード等の UI/UX 仕上げ
