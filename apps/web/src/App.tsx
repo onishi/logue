@@ -2,6 +2,7 @@ import type { User } from "@logue/shared";
 import { useEffect, useState } from "react";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
+import { GraphScreen } from "./features/graphs/GraphScreen";
 import { MetricManagementScreen } from "./features/metrics/MetricManagementScreen";
 import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { useAuth } from "./hooks/useAuth";
@@ -10,6 +11,7 @@ import { useUserSettings } from "./hooks/useUserSettings";
 const TABS = [
   { key: "entry", label: "記録する" },
   { key: "list", label: "記録一覧" },
+  { key: "graphs", label: "グラフ" },
   { key: "metrics", label: "記録項目管理" },
   { key: "settings", label: "設定" },
 ] as const;
@@ -58,6 +60,7 @@ function AuthenticatedApp({
 
       {activeTab === "entry" && <EntryFormScreen apiBaseUrl={apiBaseUrl} />}
       {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} />}
+      {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
       {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
       {activeTab === "settings" && (
         <SettingsScreen theme={settings.theme} onChangeTheme={(t) => void setTheme(t)} />

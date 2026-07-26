@@ -12,7 +12,7 @@
 - **バックエンド**: Cloudflare Workers + [Hono](https://hono.dev/)。REST API として Web／将来クライアントから共通利用
 - **DB**: Cloudflare D1（SQLite）
 - **認証**: Google OAuth 2.0（Authorization Code Flow + PKCE）。Workers 上で実装し、セッションは署名付き Cookie
-- **グラフ**: Recharts（予定）
+- **グラフ**: [Recharts](https://recharts.org/)
 - **テスト**: Jest。Workers ランタイム依存部分は D1 のフェイク実装（`apps/api/src/testing/fakeD1.ts`）でテスト
 - **構成管理**: モノレポ（npm workspaces）
 
@@ -48,9 +48,9 @@
 
 現時点で実装済みなのは **Phase 0（プロジェクト基盤）**・**Phase 1（認証基盤）**・
 **Phase 2（データモデル & API 基盤）**・**Phase 3（記録項目管理・汎用記録入力の MVP）**・
-**Phase 4（ユーザー設定・表示カスタマイズ）**。「記録項目をユーザーが自分で定義し、それに対して
-記録する」という一連の操作が一通り画面から行える状態
-（オンボーディング用テンプレート機能は任意項目のため未実装）。
+**Phase 4（ユーザー設定・表示カスタマイズ）**・**Phase 5（グラフ・可視化）**。「記録項目を
+ユーザーが自分で定義し、それに対して記録し、数値項目をグラフで振り返る」という一連の操作が
+画面から行える状態（オンボーディング用テンプレート機能は任意項目のため未実装）。
 
 ### 実装済み
 
@@ -93,13 +93,21 @@
     反映し、CSS 側で `prefers-color-scheme` より優先させる形で色を切り替える
   - `useUserSettings` フックはラジオボタン操作時の再描画が正しく戻らない React の controlled input の
     挙動を避けるため、API 応答を待たず楽観的に state を更新する
+- グラフ画面（`apps/web/src/features/graphs/GraphScreen.tsx`）: 数値型の記録項目を選んで時系列
+  グラフ（[Recharts](https://recharts.org/)）で表示
+  - 日別／週別／月別の表示単位切り替え、移動平均（7日/30日/カスタム日数、カレンダー日ベース）
+  - 複数記録項目の重ね合わせ表示（記録項目ごとに固定の配色スロットを割り当て、選択状態が変わっても
+    同じ項目は常に同じ色になる）
+  - グラフ/表ビューの切り替え（アクセシビリティ用の表ビューを常に用意）
+  - 集計・移動平均ロジック（`apps/web/src/lib/graphData.ts`）は純粋関数として切り出し、ユニットテスト済み
+  - dataviz スキルのガイドラインに沿ったカラーパレット・マークスペック・レスポンシブ対応
+    （`ResponsiveContainer`、CSS変数によるライト/ダークテーマ対応）
 - GitHub Actions CI（format check / lint / typecheck / test）
 
-### 未実装（Phase 5 以降、詳細は plan.md）
+### 未実装（Phase 6 以降、詳細は plan.md）
 
 - （任意）オンボーディング用テンプレート機能（体重・ファスティングなどの metric 定義サンプル提示）
-- グラフ・可視化（移動平均等）
-- PWA 化・ダークモード等の UI/UX 仕上げ
+- PWA 化・モバイルファーストなレスポンシブ UI 全体調整
 - 過去データ一括入力・Google スプレッドシート連携
 - 本番リリース
 
