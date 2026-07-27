@@ -26,3 +26,27 @@
 
 - Cloudflare へのデプロイを CI から行う場合は `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` を
   GitHub リポジトリの Secrets に登録して利用する（Phase 8 で本番デプロイを自動化する際に整備）
+
+## 本番デプロイ手順（暫定・手動）
+
+Cloudflare Pages 側は GitHub 連携（Git Provider）を設定していないため、現状は手元から
+`wrangler` で手動デプロイする。Phase 8 で GitHub Actions 経由の自動デプロイに置き換える想定。
+
+```bash
+# API（Cloudflare Workers）: D1 のリモートマイグレーション適用 → デプロイ
+cd apps/api
+npx wrangler d1 migrations apply logue-db --remote
+npx wrangler deploy
+
+# Web（Cloudflare Pages）: 本番 API の URL を指定してビルド → デプロイ
+cd apps/web
+echo "VITE_API_BASE_URL=https://logue-api.anison.workers.dev" > .env.production
+npm run build
+npx wrangler pages deploy dist --project-name logue-web
+```
+
+- 本番 URL: Web = `https://logue-web.pages.dev` / API = `https://logue-api.anison.workers.dev`
+- `.env.production` は `.gitignore` の `.env.*` に含まれるため commit されない。デプロイのたびに
+  上記のとおり手元で生成する
+- 本番の `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` は [google-oauth-setup.md](./google-oauth-setup.md)
+  の手順で発行し、`wrangler secret put` で登録するまでログイン機能は動作しない
