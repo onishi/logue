@@ -14,7 +14,7 @@ export function SettingsScreen({
   onChangeTheme: (theme: ThemeSetting) => void;
 }) {
   return (
-    <div>
+    <div className="screen">
       <h2>設定</h2>
       <fieldset>
         <legend>テーマ</legend>

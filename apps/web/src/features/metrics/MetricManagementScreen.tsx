@@ -495,7 +495,7 @@ export function MetricManagementScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const { groups, create, update, remove, reorder } = useMetricGroups(apiBaseUrl);
 
   return (
-    <div>
+    <div className="screen">
       <GroupManager
         groups={groups}
         create={create}
