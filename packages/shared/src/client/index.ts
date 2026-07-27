@@ -5,6 +5,7 @@ import { createMetricsClient } from "./metrics";
 
 export { ApiError } from "./apiError";
 export type { ApiClientOptions } from "./http";
+export type { ListEntriesParams } from "./entries";
 
 export function createApiClient(options: ApiClientOptions) {
   return {
