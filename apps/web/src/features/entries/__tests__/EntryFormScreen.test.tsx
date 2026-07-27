@@ -67,6 +67,8 @@ describe("EntryFormScreen", () => {
     await waitFor(() => expect(screen.getByLabelText("体重")).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText("記録日"), { target: { value: "2026-07-20" } });
+    // 選択した日付の既存記録を読み込み終わるまで入力欄は disabled になるため待機する
+    await waitFor(() => expect(screen.getByLabelText("体重")).toBeEnabled());
     fireEvent.change(screen.getByLabelText("体重"), { target: { value: "70.5" } });
     // メモは空欄のまま送信する
 
@@ -101,5 +103,53 @@ describe("EntryFormScreen", () => {
 
     await waitFor(() => expect(server.entries).toHaveLength(1));
     expect(server.entries[0]).toMatchObject({ metricId: "m1", value: "o2" });
+  });
+
+  it("pre-fills an existing entry for the selected date and updates it instead of duplicating", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push({ id: "e1", metricId: "m1", value: "70.0", recordedAt: "2026-07-15" });
+
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() => expect(screen.getByLabelText("体重")).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText("記録日"), { target: { value: "2026-07-15" } });
+    await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
+
+    fireEvent.change(screen.getByLabelText("体重"), { target: { value: "71.5" } });
+    fireEvent.click(screen.getByRole("button", { name: "記録する" }));
+
+    await waitFor(() => expect(screen.getByText("記録しました")).toBeInTheDocument());
+    expect(server.entries).toHaveLength(1);
+    expect(server.entries[0]).toMatchObject({ id: "e1", value: "71.5", recordedAt: "2026-07-15" });
+  });
+
+  it("disables the inputs while loading the selected date's existing entries", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() => expect(screen.getByLabelText("体重")).toBeEnabled());
+
+    fireEvent.change(screen.getByLabelText("記録日"), { target: { value: "2026-07-15" } });
+    expect(screen.getByLabelText("体重")).toBeDisabled();
+
+    await waitFor(() => expect(screen.getByLabelText("体重")).toBeEnabled());
   });
 });

@@ -50,10 +50,40 @@ export async function findEntryById(
   return row ?? null;
 }
 
-export async function createEntry(
+export async function findEntryByMetricAndDate(
+  db: D1Database,
+  userId: string,
+  metricId: string,
+  recordedAt: string,
+): Promise<EntryRow | null> {
+  const row = await db
+    .prepare("SELECT * FROM entries WHERE user_id = ? AND metric_id = ? AND recorded_at = ?")
+    .bind(userId, metricId, recordedAt)
+    .first<EntryRow>();
+  return row ?? null;
+}
+
+/**
+ * 同じ metric・同じ recordedAt の記録は1件のみに保つため、既存があれば更新、なければ新規作成する。
+ */
+export async function upsertEntry(
   db: D1Database,
   params: { userId: string; metricId: string; value: string; recordedAt: string },
-): Promise<EntryRow> {
+): Promise<{ entry: EntryRow; created: boolean }> {
+  const existing = await findEntryByMetricAndDate(
+    db,
+    params.userId,
+    params.metricId,
+    params.recordedAt,
+  );
+  if (existing) {
+    const updated = await updateEntry(db, params.userId, existing.id, { value: params.value });
+    if (!updated) {
+      throw new Error("entry 更新後にレコードを取得できませんでした");
+    }
+    return { entry: updated, created: false };
+  }
+
   const id = crypto.randomUUID();
   await db
     .prepare(
@@ -65,7 +95,7 @@ export async function createEntry(
   if (!created) {
     throw new Error("entry 作成後にレコードを取得できませんでした");
   }
-  return created;
+  return { entry: created, created: true };
 }
 
 export async function updateEntry(

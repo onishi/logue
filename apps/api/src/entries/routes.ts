@@ -4,12 +4,12 @@ import type { Env } from "../env";
 import { requireAuth, type AuthVariables } from "../auth/middleware";
 import { listChoiceOptions } from "../db/choiceOptions";
 import {
-  createEntry,
   deleteEntry,
   findEntryById,
   listEntries,
   toPublicEntry,
   updateEntry,
+  upsertEntry,
 } from "../db/entries";
 import { findMetricById, type MetricRow } from "../db/metrics";
 
@@ -55,13 +55,13 @@ entries.post("/", async (c) => {
   const valueError = await validateValueForMetric(c.env.DB, metric, input.value);
   if (valueError) return c.json({ error: valueError }, 400);
 
-  const created = await createEntry(c.env.DB, {
+  const result = await upsertEntry(c.env.DB, {
     userId,
     metricId: input.metricId,
     value: input.value,
     recordedAt: input.recordedAt,
   });
-  return c.json(toPublicEntry(created), 201);
+  return c.json(toPublicEntry(result.entry), result.created ? 201 : 200);
 });
 
 entries.patch("/:id", async (c) => {
