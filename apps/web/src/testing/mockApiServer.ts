@@ -149,12 +149,16 @@ export function createMockApiServer(baseUrl: string) {
       return json(filtered);
     }
     if (path === "/api/entries" && method === "POST") {
-      const created: Entry = {
-        id: id("e"),
-        metricId: body?.metricId as string,
-        value: body?.value as string,
-        recordedAt: body?.recordedAt as string,
-      };
+      const metricId = body?.metricId as string;
+      const recordedAt = body?.recordedAt as string;
+      const value = body?.value as string;
+      // 実 API と同様、同じ記録項目・同じ日は重複作成せず既存の記録を更新する
+      const existing = entries.find((e) => e.metricId === metricId && e.recordedAt === recordedAt);
+      if (existing) {
+        existing.value = value;
+        return json(existing, 200);
+      }
+      const created: Entry = { id: id("e"), metricId, value, recordedAt };
       entries.push(created);
       return json(created, 201);
     }

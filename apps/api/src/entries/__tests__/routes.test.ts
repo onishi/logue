@@ -134,6 +134,52 @@ describe("/api/entries", () => {
     expect(res.status).toBe(400);
   });
 
+  it("posting the same metric/day twice updates the existing entry instead of duplicating it", async () => {
+    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const firstRes = await app.request(
+      "/api/entries",
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          metricId: numberMetric.id,
+          value: "70.0",
+          recordedAt: "2026-07-20",
+        }),
+      },
+      env,
+    );
+    expect(firstRes.status).toBe(201);
+    const first = (await firstRes.json()) as EntryResponse;
+
+    const secondRes = await app.request(
+      "/api/entries",
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          metricId: numberMetric.id,
+          value: "71.2",
+          recordedAt: "2026-07-20",
+        }),
+      },
+      env,
+    );
+    expect(secondRes.status).toBe(200);
+    const second = (await secondRes.json()) as EntryResponse;
+    expect(second.id).toBe(first.id);
+    expect(second.value).toBe("71.2");
+
+    const listRes = await app.request(
+      `/api/entries?metricId=${numberMetric.id}&from=2026-07-20&to=2026-07-20`,
+      { headers: { Cookie: cookie } },
+      env,
+    );
+    const listed = (await listRes.json()) as EntryResponse[];
+    expect(listed).toHaveLength(1);
+    expect(listed[0]).toMatchObject({ value: "71.2" });
+  });
+
   it("lists, filters by date range, updates and deletes entries", async () => {
     const headers = { Cookie: cookie, "Content-Type": "application/json" };
     for (const recordedAt of ["2026-07-01", "2026-07-10", "2026-07-20"]) {

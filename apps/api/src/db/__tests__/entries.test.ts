@@ -1,13 +1,21 @@
 import { createFakeD1 } from "../../testing/fakeD1";
 import {
-  createEntry,
   deleteEntriesByMetricId,
   deleteEntry,
   findEntryById,
   listEntries,
   toPublicEntry,
   updateEntry,
+  upsertEntry,
 } from "../entries";
+
+async function createEntry(
+  db: ReturnType<typeof createFakeD1>,
+  params: { userId: string; metricId: string; value: string; recordedAt: string },
+) {
+  const { entry } = await upsertEntry(db, params);
+  return entry;
+}
 
 describe("db/entries", () => {
   it("creates and finds an entry scoped to the user", async () => {
@@ -70,6 +78,45 @@ describe("db/entries", () => {
     await createEntry(db, { userId: "u1", metricId: "m1", value: "2", recordedAt: "2026-07-02" });
     await deleteEntriesByMetricId(db, "m1");
     expect(await listEntries(db, "u1", { metricId: "m1" })).toHaveLength(0);
+  });
+
+  it("upsertEntry updates the existing entry instead of creating a duplicate for the same metric/day", async () => {
+    const db = createFakeD1();
+    const first = await upsertEntry(db, {
+      userId: "u1",
+      metricId: "m1",
+      value: "70",
+      recordedAt: "2026-07-20",
+    });
+    expect(first.created).toBe(true);
+    expect(first.entry.value).toBe("70");
+
+    const second = await upsertEntry(db, {
+      userId: "u1",
+      metricId: "m1",
+      value: "71.5",
+      recordedAt: "2026-07-20",
+    });
+    expect(second.created).toBe(false);
+    expect(second.entry.id).toBe(first.entry.id);
+    expect(second.entry.value).toBe("71.5");
+
+    const entriesForDay = await listEntries(db, "u1", {
+      metricId: "m1",
+      from: "2026-07-20",
+      to: "2026-07-20",
+    });
+    expect(entriesForDay).toHaveLength(1);
+    expect(entriesForDay[0]?.value).toBe("71.5");
+  });
+
+  it("upsertEntry treats a different metric or a different day as a separate entry", async () => {
+    const db = createFakeD1();
+    await upsertEntry(db, { userId: "u1", metricId: "m1", value: "70", recordedAt: "2026-07-20" });
+    await upsertEntry(db, { userId: "u1", metricId: "m2", value: "1", recordedAt: "2026-07-20" });
+    await upsertEntry(db, { userId: "u1", metricId: "m1", value: "72", recordedAt: "2026-07-21" });
+
+    expect(await listEntries(db, "u1", {})).toHaveLength(3);
   });
 
   it("maps a row to the public shape", () => {
