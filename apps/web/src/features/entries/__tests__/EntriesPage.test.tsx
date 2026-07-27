@@ -16,7 +16,12 @@ const METRIC = {
 
 function createClientMock(): ApiClient {
   return {
-    metricGroups: { list: jest.fn(), create: jest.fn(), update: jest.fn(), remove: jest.fn() },
+    metricGroups: {
+      list: jest.fn().mockResolvedValue([]),
+      create: jest.fn(),
+      update: jest.fn(),
+      remove: jest.fn(),
+    },
     metrics: {
       list: jest.fn().mockResolvedValue([METRIC]),
       create: jest.fn(),
@@ -63,5 +68,18 @@ describe("EntriesPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "記録する" }));
 
     expect(client.entries.create).not.toHaveBeenCalled();
+  });
+
+  it("groups the input form by metric group", async () => {
+    const client = createClientMock();
+    (client.metricGroups.list as jest.Mock).mockResolvedValue([
+      { id: "g1", name: "体組成", sortOrder: 0 },
+    ]);
+    (client.metrics.list as jest.Mock).mockResolvedValue([{ ...METRIC, groupId: "g1" }]);
+
+    render(<EntriesPage client={client} />);
+
+    await waitFor(() => expect(screen.getAllByText("体組成").length).toBeGreaterThan(0));
+    expect(screen.getByLabelText("体重")).toBeInTheDocument();
   });
 });

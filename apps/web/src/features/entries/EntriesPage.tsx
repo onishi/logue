@@ -1,9 +1,12 @@
 import type { ApiClient } from "@logue/shared/client";
 import type { Entry, Metric } from "@logue/shared";
 import { useState } from "react";
+import { useMetricGroups } from "../metricGroups/useMetricGroups";
 import { useMetrics } from "../metrics/useMetrics";
 import { useEntries } from "./useEntries";
 import { EntryValueInput, type EntryValuePayload } from "./EntryValueInput";
+
+const UNGROUPED_KEY = "__ungrouped__";
 
 function formatRecordedAt(recordedAt: string): string {
   const date = new Date(recordedAt);
@@ -18,15 +21,24 @@ function formatEntryValue(entry: Entry, metric: Metric | undefined): string {
 }
 
 export function EntriesPage({ client }: { client: ApiClient }) {
+  const groupsHook = useMetricGroups(client);
   const metricsHook = useMetrics(client, { includeArchived: true });
   const entriesHook = useEntries(client, { limit: 50 });
   const [drafts, setDrafts] = useState<Record<string, EntryValuePayload>>({});
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EntryValuePayload>({});
   const [actionError, setActionError] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string>("");
 
   const activeMetrics = metricsHook.metrics.filter((metric) => !metric.isArchived);
   const metricById = new Map(metricsHook.metrics.map((metric) => [metric.id, metric]));
+  const metricsByGroup = (groupId: string | null) =>
+    activeMetrics.filter(
+      (metric) => (metric.groupId ?? UNGROUPED_KEY) === (groupId ?? UNGROUPED_KEY),
+    );
+  const visibleEntries = groupFilter
+    ? entriesHook.entries.filter((entry) => metricById.get(entry.metricId)?.groupId === groupFilter)
+    : entriesHook.entries;
 
   const handleRecord = async (metric: Metric) => {
     const draft = drafts[metric.id] ?? {};
@@ -73,17 +85,14 @@ export function EntriesPage({ client }: { client: ApiClient }) {
     }
   };
 
-  return (
-    <div className="entries-page">
-      {actionError && <p role="alert">{actionError}</p>}
-
-      <section>
-        <h3>記録する</h3>
-        {activeMetrics.length === 0 && (
-          <p>記録項目がまだありません。「記録項目管理」から追加してください。</p>
-        )}
+  const renderMetricInputSection = (groupId: string | null, title: string) => {
+    const bucket = metricsByGroup(groupId);
+    if (bucket.length === 0) return null;
+    return (
+      <div key={groupId ?? UNGROUPED_KEY} className="entry-group-section">
+        <h4>{title}</h4>
         <ul>
-          {activeMetrics.map((metric) => (
+          {bucket.map((metric) => (
             <li key={metric.id} className="entry-input-row">
               <span className="metric-name">{metric.name}</span>
               <EntryValueInput
@@ -97,12 +106,38 @@ export function EntriesPage({ client }: { client: ApiClient }) {
             </li>
           ))}
         </ul>
+      </div>
+    );
+  };
+
+  return (
+    <div className="entries-page">
+      {actionError && <p role="alert">{actionError}</p>}
+
+      <section>
+        <h3>記録する</h3>
+        {activeMetrics.length === 0 && (
+          <p>記録項目がまだありません。「記録項目管理」から追加してください。</p>
+        )}
+        {groupsHook.groups.map((group) => renderMetricInputSection(group.id, group.name))}
+        {renderMetricInputSection(null, "未分類")}
       </section>
 
       <section>
         <h3>最近の記録</h3>
+        <label>
+          グループで絞り込む
+          <select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)}>
+            <option value="">すべて</option>
+            {groupsHook.groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <ul>
-          {entriesHook.entries.map((entry) => {
+          {visibleEntries.map((entry) => {
             const metric = metricById.get(entry.metricId);
             return (
               <li key={entry.id} className="entry-row">
