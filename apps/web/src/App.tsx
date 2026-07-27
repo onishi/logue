@@ -1,7 +1,15 @@
+import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { useApiClient } from "./hooks/useApiClient";
+import { EntriesPage } from "./features/entries/EntriesPage";
+import { MetricsPage } from "./features/metrics/MetricsPage";
+
+type Tab = "entries" | "metrics";
 
 function App({ apiBaseUrl }: { apiBaseUrl: string }) {
   const auth = useAuth(apiBaseUrl);
+  const client = useApiClient(apiBaseUrl);
+  const [tab, setTab] = useState<Tab>("entries");
 
   return (
     <main>
@@ -22,6 +30,25 @@ function App({ apiBaseUrl }: { apiBaseUrl: string }) {
           <button type="button" onClick={() => void auth.logout()}>
             ログアウト
           </button>
+
+          <nav>
+            <button
+              type="button"
+              onClick={() => setTab("entries")}
+              aria-current={tab === "entries"}
+            >
+              記録
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("metrics")}
+              aria-current={tab === "metrics"}
+            >
+              記録項目管理
+            </button>
+          </nav>
+
+          {tab === "entries" ? <EntriesPage client={client} /> : <MetricsPage client={client} />}
         </div>
       )}
     </main>
