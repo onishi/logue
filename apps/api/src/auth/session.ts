@@ -31,7 +31,7 @@ export async function writeSessionCookie(
   await setSignedCookie(c, SESSION_COOKIE_NAME, JSON.stringify(payload), secret, {
     httpOnly: true,
     secure: true,
-    sameSite: "Lax",
+    sameSite: "None",
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
   });
@@ -41,7 +41,7 @@ export function clearSessionCookie(c: Context): void {
   setCookie(c, SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     secure: true,
-    sameSite: "Lax",
+    sameSite: "None",
     path: "/",
     maxAge: 0,
   });
