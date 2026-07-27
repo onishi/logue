@@ -60,7 +60,10 @@
 
 ## Phase 1: 認証基盤
 
-- [ ] Google Cloud Console で OAuth クライアント作成（開発用・本番用）※ユーザー側の作業待ち
+- [x] Google Cloud Console で OAuth クライアント作成（開発用・本番用の両リダイレクト URI を
+      1つのクライアントに登録し、本番の `wrangler secret` に設定済み。ローカル `.dev.vars` は
+      未設定のダミー値のままなので、ローカル開発でログインを試す場合は同じ Client ID/Secret を
+      そちらにも設定する）
 - [x] Workers 上に Google OAuth 2.0 Authorization Code Flow を実装（PKCE 対応）
 - [x] コールバック処理・トークン検証・ユーザー作成/紐付け（`users` テーブル）
 - [x] セッション発行（署名付き Cookie、有効期限・リフレッシュ方針の設計）
