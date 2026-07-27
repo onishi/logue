@@ -96,7 +96,7 @@ export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     .reverse();
 
   return (
-    <div>
+    <div className="screen">
       <h2>記録一覧</h2>
       <label>
         グループで絞り込み

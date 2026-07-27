@@ -85,7 +85,7 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
 
   if (numberMetrics.length === 0) {
     return (
-      <div>
+      <div className="screen">
         <h2>グラフ</h2>
         <p>数値型の記録項目がまだありません。「記録項目管理」から数値項目を追加してください。</p>
       </div>
@@ -93,7 +93,7 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   }
 
   return (
-    <div>
+    <div className="screen">
       <h2>グラフ</h2>
 
       <fieldset>
@@ -160,29 +160,31 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
       {selectedMetrics.length === 0 ? (
         <p>記録項目を1つ以上選択してください。</p>
       ) : showTable ? (
-        <table>
-          <thead>
-            <tr>
-              <th>日付</th>
-              {selectedMetrics.map((metric) => (
-                <th key={metric.id}>
-                  {metric.name}
-                  {metric.unit ? `（${metric.unit}）` : ""}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {chartData.map((row) => (
-              <tr key={row.label as string}>
-                <td>{row.label}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
                 {selectedMetrics.map((metric) => (
-                  <td key={metric.id}>{formatValue(row[metric.id])}</td>
+                  <th key={metric.id}>
+                    {metric.name}
+                    {metric.unit ? `（${metric.unit}）` : ""}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {chartData.map((row) => (
+                <tr key={row.label as string}>
+                  <td>{row.label}</td>
+                  {selectedMetrics.map((metric) => (
+                    <td key={metric.id}>{formatValue(row[metric.id])}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <div style={{ width: "100%", height: 320 }}>
           <ResponsiveContainer width="100%" height="100%">

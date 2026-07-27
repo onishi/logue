@@ -97,7 +97,7 @@ export function EntryFormScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
 
   if (sections.length === 0) {
     return (
-      <div>
+      <div className="screen">
         <h2>記録する</h2>
         <p>記録項目がまだありません。「記録項目管理」から記録項目を追加してください。</p>
       </div>
@@ -105,7 +105,7 @@ export function EntryFormScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)}>
+    <form className="screen" onSubmit={(e) => void submit(e)}>
       <h2>記録する</h2>
       <label>
         日付

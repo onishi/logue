@@ -39,13 +39,15 @@ function AuthenticatedApp({
   }, [settings.theme]);
 
   return (
-    <div>
-      <p>{user.name ?? user.email} でログイン中</p>
-      <button type="button" onClick={onLogout}>
-        ログアウト
-      </button>
+    <div className="app">
+      <div className="account-bar">
+        <p>{user.name ?? user.email} でログイン中</p>
+        <button type="button" onClick={onLogout}>
+          ログアウト
+        </button>
+      </div>
 
-      <nav>
+      <nav className="tab-nav">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -72,8 +74,20 @@ function AuthenticatedApp({
 function App({ apiBaseUrl }: { apiBaseUrl: string }) {
   const auth = useAuth(apiBaseUrl);
 
+  if (auth.status === "authenticated") {
+    return (
+      <main>
+        <AuthenticatedApp
+          apiBaseUrl={apiBaseUrl}
+          user={auth.user}
+          onLogout={() => void auth.logout()}
+        />
+      </main>
+    );
+  }
+
   return (
-    <main>
+    <main className="landing">
       <h1>logue</h1>
       <p>日常の記録をするアプリ</p>
 
@@ -83,14 +97,6 @@ function App({ apiBaseUrl }: { apiBaseUrl: string }) {
         <button type="button" onClick={auth.login}>
           Google でログイン
         </button>
-      )}
-
-      {auth.status === "authenticated" && (
-        <AuthenticatedApp
-          apiBaseUrl={apiBaseUrl}
-          user={auth.user}
-          onLogout={() => void auth.logout()}
-        />
       )}
     </main>
   );

@@ -177,3 +177,167 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/*
+ * ここから下はアプリ本体（ログイン後の画面）のモバイルファーストなレイアウト。
+ * #root の text-align: center はランディング（未ログイン時）向けなので、.app 配下では上書きする。
+ */
+.landing {
+  padding: 24px 16px;
+}
+
+.app {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-bar p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-nav button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.tab-nav button[aria-current="page"] {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.app button,
+.landing button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  cursor: pointer;
+}
+
+.app button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.screen form,
+.screen fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0;
+}
+
+.screen label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.screen fieldset label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.screen input,
+.screen select {
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+}
+
+.screen fieldset input[type="checkbox"],
+.screen fieldset input[type="radio"] {
+  min-height: auto;
+  width: auto;
+}
+
+.screen ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.screen li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+}
+
+.screen th,
+.screen td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .tab-nav {
+    overflow-x: visible;
+    flex-wrap: wrap;
+  }
+
+  .screen li {
+    flex-wrap: nowrap;
+  }
+}
