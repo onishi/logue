@@ -126,6 +126,7 @@ export function EntryFormScreen({
                   type="button"
                   disabled={inputsDisabled}
                   onClick={() => void handleDelete(metric.id)}
+                  aria-label={`${metric.name} の記録を削除`}
                 >
                   削除
                 </button>
