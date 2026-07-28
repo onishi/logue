@@ -126,9 +126,7 @@
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
   text-align: center;
   min-height: 100svh;
   display: flex;
@@ -177,6 +175,8 @@ p {
  */
 .landing {
   padding: 24px 16px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 /* 見た目には出さないが、スクリーンリーダー等の支援技術には伝えたいテキスト用 */
@@ -299,8 +299,6 @@ p {
   gap: 16px;
   padding: 16px;
   padding-bottom: 32px;
-  max-width: 720px;
-  margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }
