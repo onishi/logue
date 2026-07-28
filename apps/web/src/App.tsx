@@ -46,6 +46,7 @@ function AuthenticatedApp({
 
   return (
     <div className="app">
+      <h1 className="sr-only">logue</h1>
       <div className="account-bar">
         <p>{user.name ?? user.email} でログイン中</p>
         <button type="button" onClick={onLogout}>
@@ -53,7 +54,7 @@ function AuthenticatedApp({
         </button>
       </div>
 
-      <nav className="tab-nav">
+      <nav className="tab-nav" aria-label="画面切り替え">
         {TABS.map((tab) => (
           <button
             key={tab.key}

@@ -38,7 +38,11 @@ function LabelListEditor({
               onChange(next);
             }}
           />
-          <button type="button" onClick={() => onChange(labels.filter((_, i) => i !== index))}>
+          <button
+            type="button"
+            onClick={() => onChange(labels.filter((_, i) => i !== index))}
+            aria-label={`選択肢 ${index + 1} を削除`}
+          >
             選択肢を削除
           </button>
         </div>
@@ -80,6 +84,7 @@ function GroupRow({
         />
         <button
           type="button"
+          aria-label={`${group.name} の変更を保存`}
           onClick={async () => {
             await onRename(name);
             setEditing(false);
@@ -89,6 +94,7 @@ function GroupRow({
         </button>
         <button
           type="button"
+          aria-label={`${group.name} の編集をキャンセル`}
           onClick={() => {
             setName(group.name);
             setEditing(false);
@@ -119,10 +125,10 @@ function GroupRow({
       >
         ↓
       </button>
-      <button type="button" onClick={() => setEditing(true)}>
+      <button type="button" onClick={() => setEditing(true)} aria-label={`${group.name} を編集`}>
         編集
       </button>
-      <button type="button" onClick={onDelete}>
+      <button type="button" onClick={onDelete} aria-label={`${group.name} を削除`}>
         削除
       </button>
     </li>
@@ -246,6 +252,7 @@ function MetricGeneralFields({
       </label>
       <button
         type="button"
+        aria-label={`${metric.name} の変更を保存`}
         onClick={async () => {
           if (!name.trim()) return;
           await onSave({
@@ -257,7 +264,7 @@ function MetricGeneralFields({
       >
         保存
       </button>
-      <button type="button" onClick={onCancel}>
+      <button type="button" onClick={onCancel} aria-label={`${metric.name} の編集をキャンセル`}>
         キャンセル
       </button>
     </div>
@@ -279,6 +286,7 @@ function MetricChoiceOptionsEditor({
       <LabelListEditor labels={labels} onChange={setLabels} />
       <button
         type="button"
+        aria-label={`${metric.name} の選択肢を保存`}
         onClick={() => {
           const cleaned = labels.map((l) => l.trim()).filter((l) => l.length > 0);
           if (cleaned.length > 0) void onSave(cleaned);
@@ -342,13 +350,23 @@ function MetricRow({
       >
         ↓
       </button>
-      <button type="button" onClick={() => setEditing((v) => !v)}>
+      <button
+        type="button"
+        onClick={() => setEditing((v) => !v)}
+        aria-label={editing ? `${metric.name} の編集を閉じる` : `${metric.name} を編集`}
+      >
         {editing ? "閉じる" : "編集"}
       </button>
-      <button type="button" onClick={onToggleArchive}>
+      <button
+        type="button"
+        onClick={onToggleArchive}
+        aria-label={
+          metric.isArchived ? `${metric.name} を再表示する` : `${metric.name} をアーカイブする`
+        }
+      >
         {metric.isArchived ? "再表示する" : "アーカイブする"}
       </button>
-      <button type="button" onClick={onDelete}>
+      <button type="button" onClick={onDelete} aria-label={`${metric.name} を削除`}>
         削除
       </button>
       {editing && (

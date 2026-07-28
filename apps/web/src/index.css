@@ -186,6 +186,19 @@ code {
   padding: 24px 16px;
 }
 
+/* 見た目には出さないが、スクリーンリーダー等の支援技術には伝えたいテキスト用 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app {
   text-align: left;
   display: flex;

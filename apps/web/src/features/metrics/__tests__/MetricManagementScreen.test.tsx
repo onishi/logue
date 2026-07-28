@@ -72,16 +72,16 @@ describe("MetricManagementScreen", () => {
     render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
     await waitFor(() => expect(screen.getByText(/体重/)).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole("button", { name: "アーカイブする" }));
+    fireEvent.click(screen.getByRole("button", { name: "体重 をアーカイブする" }));
     await waitFor(() => expect(screen.getByText(/アーカイブ済み/)).toBeInTheDocument());
     expect(server.metrics[0]?.isArchived).toBe(true);
 
-    fireEvent.click(screen.getByRole("button", { name: "編集" }));
+    fireEvent.click(screen.getByRole("button", { name: "体重 を編集" }));
     fireEvent.change(screen.getByLabelText("体重 の新しい名前"), { target: { value: "体重(朝)" } });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "体重 の変更を保存" }));
     await waitFor(() => expect(screen.getByText(/体重\(朝\)/)).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole("button", { name: "削除" }));
+    fireEvent.click(screen.getByRole("button", { name: "体重(朝) を削除" }));
     await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText(/体重/)).not.toBeInTheDocument());
     expect(server.metrics).toHaveLength(0);
@@ -119,10 +119,10 @@ describe("MetricManagementScreen", () => {
     await waitFor(() => expect(screen.getByText(/体調/)).toBeInTheDocument());
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "編集" }));
+      fireEvent.click(screen.getByRole("button", { name: "体調 を編集" }));
     });
     fireEvent.change(screen.getByLabelText("選択肢 1"), { target: { value: "絶好調" } });
-    fireEvent.click(screen.getByRole("button", { name: "選択肢を保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "体調 の選択肢を保存" }));
 
     await waitFor(() =>
       expect(server.metrics[0]?.choiceOptions.map((o) => o.label)).toEqual(["絶好調"]),
