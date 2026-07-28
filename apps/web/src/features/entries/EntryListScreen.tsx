@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
-import { MetricValueInput } from "./MetricValueInput";
 
 function formatValue(metric: Metric | undefined, value: string): string {
   if (!metric) return value;
@@ -16,81 +15,16 @@ function formatValue(metric: Metric | undefined, value: string): string {
   return value;
 }
 
-function EntryCell({
-  metric,
-  date,
-  entry,
-  onSave,
-  onDelete,
+export function EntryListScreen({
+  apiBaseUrl,
+  onEditDate,
 }: {
-  metric: Metric;
-  date: string;
-  entry: Entry | undefined;
-  onSave: (value: string) => Promise<void>;
-  onDelete: () => void;
+  apiBaseUrl: string;
+  onEditDate: (date: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState("");
-
-  const startEditing = () => {
-    setValue(entry?.value ?? "");
-    setEditing(true);
-  };
-
-  if (editing) {
-    return (
-      <td>
-        <MetricValueInput
-          metric={metric}
-          value={value}
-          disabled={false}
-          ariaLabel={`${metric.name}（${date}）`}
-          onChange={setValue}
-        />
-        <button
-          type="button"
-          onClick={async () => {
-            const trimmed = value.trim();
-            if (trimmed) await onSave(trimmed);
-            setEditing(false);
-          }}
-        >
-          保存
-        </button>
-        <button type="button" onClick={() => setEditing(false)}>
-          キャンセル
-        </button>
-      </td>
-    );
-  }
-
-  if (!entry) {
-    return (
-      <td>
-        <button type="button" onClick={startEditing} aria-label={`${metric.name}（${date}）を追加`}>
-          追加
-        </button>
-      </td>
-    );
-  }
-
-  return (
-    <td>
-      <span>{formatValue(metric, entry.value)}</span>
-      <button type="button" onClick={startEditing} aria-label={`${metric.name}（${date}）を編集`}>
-        編集
-      </button>
-      <button type="button" onClick={onDelete} aria-label={`${metric.name}（${date}）を削除`}>
-        削除
-      </button>
-    </td>
-  );
-}
-
-export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
-  const { entries, create, remove } = useEntries(apiBaseUrl);
+  const { entries } = useEntries(apiBaseUrl);
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
@@ -182,6 +116,7 @@ export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
                     {metric.isArchived && " [アーカイブ済み]"}
                   </th>
                 ))}
+                <th aria-hidden="true"></th>
               </tr>
             </thead>
             <tbody>
@@ -191,20 +126,18 @@ export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
                   {metricColumns.map((metric) => {
                     const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
                     return (
-                      <EntryCell
-                        key={metric.id}
-                        metric={metric}
-                        date={date}
-                        entry={entry}
-                        onSave={async (value) => {
-                          await create({ metricId: metric.id, value, recordedAt: date });
-                        }}
-                        onDelete={() => {
-                          if (entry) void remove(entry.id);
-                        }}
-                      />
+                      <td key={metric.id}>{entry ? formatValue(metric, entry.value) : "—"}</td>
                     );
                   })}
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => onEditDate(date)}
+                      aria-label={`${date}を編集`}
+                    >
+                      編集
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

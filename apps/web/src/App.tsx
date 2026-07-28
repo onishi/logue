@@ -28,7 +28,13 @@ function AuthenticatedApp({
   onLogout: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("entry");
+  const [entryFormDate, setEntryFormDate] = useState<string | undefined>(undefined);
   const { settings, setTheme } = useUserSettings(apiBaseUrl);
+
+  const editDate = (date: string) => {
+    setEntryFormDate(date);
+    setActiveTab("entry");
+  };
 
   useEffect(() => {
     if (settings.theme === "system") {
@@ -53,15 +59,25 @@ function AuthenticatedApp({
             key={tab.key}
             type="button"
             aria-current={activeTab === tab.key ? "page" : undefined}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              // タブから直接「記録する」を開いたときは常に今日の日付にリセットする
+              if (tab.key === "entry") setEntryFormDate(undefined);
+              setActiveTab(tab.key);
+            }}
           >
             {tab.label}
           </button>
         ))}
       </nav>
 
-      {activeTab === "entry" && <EntryFormScreen apiBaseUrl={apiBaseUrl} />}
-      {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} />}
+      {activeTab === "entry" && (
+        <EntryFormScreen
+          key={entryFormDate ?? "today"}
+          apiBaseUrl={apiBaseUrl}
+          initialDate={entryFormDate}
+        />
+      )}
+      {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} onEditDate={editDate} />}
       {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
       {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
       {activeTab === "settings" && (

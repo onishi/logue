@@ -22,19 +22,34 @@ function groupedActiveMetrics(
   return ungrouped.length > 0 ? [...sections, { group: null, metrics: ungrouped }] : sections;
 }
 
-export function EntryFormScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
+export function EntryFormScreen({
+  apiBaseUrl,
+  initialDate,
+}: {
+  apiBaseUrl: string;
+  initialDate?: string;
+}) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
 
-  const [recordedAt, setRecordedAt] = useState(todayDateString());
+  const [recordedAt, setRecordedAt] = useState(initialDate ?? todayDateString());
   const {
     entries,
     status: entriesStatus,
     create,
+    remove,
   } = useEntries(apiBaseUrl, { from: recordedAt, to: recordedAt });
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const entryByMetricId = new Map(entries.map((entry) => [entry.metricId, entry]));
+
+  const handleDelete = async (metricId: string) => {
+    const entry = entryByMetricId.get(metricId);
+    if (!entry) return;
+    await remove(entry.id);
+  };
 
   // 選択中の日付にすでに記録済みの値をフォームへ反映する（同じ項目・同じ日は上書き保存になる）。
   // 取得中は入力欄を disabled にしておき、読み込み完了前にユーザーが入力した内容を
@@ -106,6 +121,15 @@ export function EntryFormScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
                 disabled={inputsDisabled}
                 onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
               />
+              {entryByMetricId.has(metric.id) && (
+                <button
+                  type="button"
+                  disabled={inputsDisabled}
+                  onClick={() => void handleDelete(metric.id)}
+                >
+                  削除
+                </button>
+              )}
             </label>
           ))}
         </fieldset>
