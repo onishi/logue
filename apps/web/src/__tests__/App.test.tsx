@@ -62,6 +62,41 @@ describe("App", () => {
       );
     });
 
+    it("opens 記録する pre-filled with a date's data when its 編集 button is clicked from 記録一覧", async () => {
+      const server = createMockApiServer(API_BASE_URL);
+      server.metrics.push({
+        id: "m1",
+        metricGroupId: null,
+        name: "体重",
+        type: "number",
+        unit: "kg",
+        sortOrder: 0,
+        isArchived: false,
+        choiceOptions: [],
+      });
+      server.entries.push({ id: "e1", metricId: "m1", value: "70", recordedAt: "2026-07-15" });
+      globalThis.fetch = jest.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input.toString();
+        if (url.endsWith("/api/auth/me")) {
+          return Promise.resolve({ ok: true, json: async () => user });
+        }
+        return server.fetchMock(input, init);
+      }) as unknown as typeof fetch;
+
+      render(<App apiBaseUrl={API_BASE_URL} />);
+      await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole("button", { name: "記録一覧" }));
+      await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole("button", { name: "2026-07-15を編集" }));
+
+      await waitFor(() => expect(screen.getByLabelText("記録日")).toBeInTheDocument());
+      expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-15");
+      await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
+      expect(screen.getByRole("button", { name: "削除" })).toBeInTheDocument();
+    });
+
     it("applies the selected theme to the document root", async () => {
       render(<App apiBaseUrl={API_BASE_URL} />);
       await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());

@@ -51,7 +51,7 @@ describe("EntryListScreen", () => {
   });
 
   it("shows a pivot table with dates as rows and metrics as columns", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} />);
+    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
 
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
@@ -63,12 +63,13 @@ describe("EntryListScreen", () => {
 
     expect(screen.getByText("70 kg")).toBeInTheDocument();
     expect(screen.getByText("良い")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "体調（2026-07-01）を追加" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "体重（2026-07-02）を追加" })).toBeInTheDocument();
+    // 記録のないセルはダッシュ表示になる（セルごとの追加/編集/削除ボタンはない）
+    expect(screen.getAllByText("—")).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: /追加|削除/ })).not.toBeInTheDocument();
   });
 
   it("filters columns by group", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} />);
+    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
     );
@@ -81,40 +82,15 @@ describe("EntryListScreen", () => {
     expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument();
   });
 
-  it("fills in a previously empty cell without creating a duplicate entry", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "体重（2026-07-02）を追加" })).toBeInTheDocument(),
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "体重（2026-07-02）を追加" }));
-    fireEvent.change(screen.getByLabelText("体重（2026-07-02）"), { target: { value: "71" } });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
-
-    await waitFor(() => expect(server.entries).toHaveLength(3));
-    expect(
-      server.entries.find((e) => e.metricId === "m1" && e.recordedAt === "2026-07-02"),
-    ).toMatchObject({ value: "71" });
-  });
-
-  it("edits an existing cell's value in place", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} />);
+  it("calls onEditDate with the row's date when its edit button is clicked", async () => {
+    const onEditDate = jest.fn();
+    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={onEditDate} />);
     await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole("button", { name: "体重（2026-07-01）を編集" }));
-    fireEvent.change(screen.getByLabelText("体重（2026-07-01）"), { target: { value: "72" } });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "2026-07-01を編集" }));
+    expect(onEditDate).toHaveBeenCalledWith("2026-07-01");
 
-    await waitFor(() => expect(screen.getByText("72 kg")).toBeInTheDocument());
-    expect(server.entries).toHaveLength(2);
-  });
-
-  it("deletes an entry from a cell", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
-
-    fireEvent.click(screen.getByRole("button", { name: "体重（2026-07-01）を削除" }));
-
-    await waitFor(() => expect(server.entries).toHaveLength(1));
+    fireEvent.click(screen.getByRole("button", { name: "2026-07-02を編集" }));
+    expect(onEditDate).toHaveBeenCalledWith("2026-07-02");
   });
 });
