@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
+import { MetricValueInput } from "./MetricValueInput";
 
 function formatValue(metric: Metric | undefined, value: string): string {
   if (!metric) return value;
@@ -15,39 +16,42 @@ function formatValue(metric: Metric | undefined, value: string): string {
   return value;
 }
 
-function EntryRow({
-  entry,
+function EntryCell({
   metric,
+  date,
+  entry,
+  onSave,
   onDelete,
-  onUpdate,
 }: {
-  entry: Entry;
-  metric: Metric | undefined;
+  metric: Metric;
+  date: string;
+  entry: Entry | undefined;
+  onSave: (value: string) => Promise<void>;
   onDelete: () => void;
-  onUpdate: (value: string, recordedAt: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(entry.value);
-  const [recordedAt, setRecordedAt] = useState(entry.recordedAt);
+  const [value, setValue] = useState("");
+
+  const startEditing = () => {
+    setValue(entry?.value ?? "");
+    setEditing(true);
+  };
 
   if (editing) {
     return (
-      <li>
-        <input
-          aria-label={`${metric?.name ?? entry.metricId} の日付`}
-          type="date"
-          value={recordedAt}
-          onChange={(e) => setRecordedAt(e.target.value)}
-        />
-        <input
-          aria-label={`${metric?.name ?? entry.metricId} の値`}
+      <td>
+        <MetricValueInput
+          metric={metric}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          disabled={false}
+          ariaLabel={`${metric.name}（${date}）`}
+          onChange={setValue}
         />
         <button
           type="button"
           onClick={async () => {
-            await onUpdate(value, recordedAt);
+            const trimmed = value.trim();
+            if (trimmed) await onSave(trimmed);
             setEditing(false);
           }}
         >
@@ -56,44 +60,75 @@ function EntryRow({
         <button type="button" onClick={() => setEditing(false)}>
           キャンセル
         </button>
-      </li>
+      </td>
+    );
+  }
+
+  if (!entry) {
+    return (
+      <td>
+        <button type="button" onClick={startEditing} aria-label={`${metric.name}（${date}）を追加`}>
+          追加
+        </button>
+      </td>
     );
   }
 
   return (
-    <li>
-      {entry.recordedAt} - {metric?.name ?? "(削除済みの記録項目)"}:{" "}
-      {formatValue(metric, entry.value)}
-      <button type="button" onClick={() => setEditing(true)}>
+    <td>
+      <span>{formatValue(metric, entry.value)}</span>
+      <button type="button" onClick={startEditing} aria-label={`${metric.name}（${date}）を編集`}>
         編集
       </button>
-      <button type="button" onClick={onDelete}>
+      <button type="button" onClick={onDelete} aria-label={`${metric.name}（${date}）を削除`}>
         削除
       </button>
-    </li>
+    </td>
   );
 }
 
 export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
-  const { entries, update, remove } = useEntries(apiBaseUrl);
+  const { entries, create, remove } = useEntries(apiBaseUrl);
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
-
-  const metricsById = useMemo(() => new Map(metrics.map((m) => [m.id, m])), [metrics]);
 
   const metricsInGroup = groupFilter
     ? metrics.filter((m) => m.metricGroupId === groupFilter)
     : metrics;
 
-  const visibleEntries = entries
-    .filter((e) =>
-      metricFilter ? e.metricId === metricFilter : metricsInGroup.some((m) => m.id === e.metricId),
-    )
-    .slice()
-    .reverse();
+  // フィルタなしのときは全項目を列に出すと空欄だらけの巨大な表になるため、
+  // 記録が1件もない項目は列から省く。グループ・記録項目で絞り込んだ場合はその範囲を尊重する。
+  const metricColumns = useMemo(() => {
+    const base = metricFilter
+      ? metricsInGroup.filter((m) => m.id === metricFilter)
+      : groupFilter
+        ? metricsInGroup
+        : metricsInGroup.filter((m) => entries.some((e) => e.metricId === m.id));
+    return [...base].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [metricsInGroup, metricFilter, groupFilter, entries]);
+
+  const columnMetricIds = useMemo(() => new Set(metricColumns.map((m) => m.id)), [metricColumns]);
+
+  const entryByDateAndMetric = useMemo(() => {
+    const map = new Map<string, Entry>();
+    for (const entry of entries) {
+      if (columnMetricIds.has(entry.metricId)) {
+        map.set(`${entry.recordedAt}|${entry.metricId}`, entry);
+      }
+    }
+    return map;
+  }, [entries, columnMetricIds]);
+
+  const dates = useMemo(() => {
+    const unique = new Set<string>();
+    for (const entry of entries) {
+      if (columnMetricIds.has(entry.metricId)) unique.add(entry.recordedAt);
+    }
+    return [...unique].sort().reverse();
+  }, [entries, columnMetricIds]);
 
   return (
     <div className="screen">
@@ -131,20 +166,50 @@ export function EntryListScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
           ))}
         </select>
       </label>
-      {visibleEntries.length === 0 ? (
+
+      {metricColumns.length === 0 || dates.length === 0 ? (
         <p>記録がありません。</p>
       ) : (
-        <ul>
-          {visibleEntries.map((entry) => (
-            <EntryRow
-              key={entry.id}
-              entry={entry}
-              metric={metricsById.get(entry.metricId)}
-              onDelete={() => void remove(entry.id)}
-              onUpdate={(value, recordedAt) => update(entry.id, { value, recordedAt })}
-            />
-          ))}
-        </ul>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
+                {metricColumns.map((metric) => (
+                  <th key={metric.id}>
+                    {metric.name}
+                    {metric.unit ? `（${metric.unit}）` : ""}
+                    {metric.isArchived && " [アーカイブ済み]"}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dates.map((date) => (
+                <tr key={date}>
+                  <th scope="row">{date}</th>
+                  {metricColumns.map((metric) => {
+                    const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
+                    return (
+                      <EntryCell
+                        key={metric.id}
+                        metric={metric}
+                        date={date}
+                        entry={entry}
+                        onSave={async (value) => {
+                          await create({ metricId: metric.id, value, recordedAt: date });
+                        }}
+                        onDelete={() => {
+                          if (entry) void remove(entry.id);
+                        }}
+                      />
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
