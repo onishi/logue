@@ -28,7 +28,7 @@ function LabelListEditor({
   return (
     <div>
       {labels.map((label, index) => (
-        <div key={index}>
+        <div key={index} className="entry-input-row">
           <input
             aria-label={`選択肢 ${index + 1}`}
             value={label}
@@ -40,10 +40,11 @@ function LabelListEditor({
           />
           <button
             type="button"
+            className="icon-button button-danger"
             onClick={() => onChange(labels.filter((_, i) => i !== index))}
             aria-label={`選択肢 ${index + 1} を削除`}
           >
-            選択肢を削除
+            ✕
           </button>
         </div>
       ))}
@@ -130,11 +131,11 @@ function GroupRow({
       </button>
       <button
         type="button"
-        className="button-danger"
+        className="icon-button button-danger"
         onClick={onDelete}
         aria-label={`${group.name} を削除`}
       >
-        削除
+        ✕
       </button>
     </li>
   );
@@ -373,11 +374,11 @@ function MetricRow({
       </button>
       <button
         type="button"
-        className="button-danger"
+        className="icon-button button-danger"
         onClick={onDelete}
         aria-label={`${metric.name} を削除`}
       >
-        削除
+        ✕
       </button>
       {editing && (
         <MetricGeneralFields

@@ -87,7 +87,7 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     return (
       <div className="screen">
         <h2>グラフ</h2>
-        <p>数値型の記録項目がまだありません。「記録項目管理」から数値項目を追加してください。</p>
+        <p>数値型の記録項目がまだありません。「項目管理」から数値項目を追加してください。</p>
       </div>
     );
   }

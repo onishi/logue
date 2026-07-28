@@ -91,7 +91,7 @@ export function EntryFormScreen({
     return (
       <div className="screen">
         <h2>記録する</h2>
-        <p>記録項目がまだありません。「記録項目管理」から記録項目を追加してください。</p>
+        <p>記録項目がまだありません。「項目管理」から記録項目を追加してください。</p>
       </div>
     );
   }
@@ -113,25 +113,29 @@ export function EntryFormScreen({
           <legend>{group?.name ?? "未分類"}</legend>
           {sectionMetrics.map((metric) => (
             <label key={metric.id}>
-              {metric.name}
-              {metric.unit ? `（${metric.unit}）` : ""}
-              <MetricValueInput
-                metric={metric}
-                value={values[metric.id] ?? ""}
-                disabled={inputsDisabled}
-                onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
-              />
-              {entryByMetricId.has(metric.id) && (
-                <button
-                  type="button"
-                  className="button-danger"
+              <span className="field-label">
+                {metric.name}
+                {metric.unit ? `（${metric.unit}）` : ""}
+              </span>
+              <div className="entry-input-row">
+                <MetricValueInput
+                  metric={metric}
+                  value={values[metric.id] ?? ""}
                   disabled={inputsDisabled}
-                  onClick={() => void handleDelete(metric.id)}
-                  aria-label={`${metric.name} の記録を削除`}
-                >
-                  削除
-                </button>
-              )}
+                  onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
+                />
+                {entryByMetricId.has(metric.id) && (
+                  <button
+                    type="button"
+                    className="icon-button button-danger"
+                    disabled={inputsDisabled}
+                    onClick={() => void handleDelete(metric.id)}
+                    aria-label={`${metric.name} の記録を削除`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </label>
           ))}
         </fieldset>
