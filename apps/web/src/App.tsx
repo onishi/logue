@@ -12,7 +12,7 @@ const TABS = [
   { key: "entry", label: "記録する", icon: "✏️" },
   { key: "list", label: "記録一覧", icon: "📋" },
   { key: "graphs", label: "グラフ", icon: "📈" },
-  { key: "metrics", label: "記録項目管理", icon: "🏷️" },
+  { key: "metrics", label: "項目管理", icon: "🏷️" },
   { key: "settings", label: "設定", icon: "⚙️" },
 ] as const;
 

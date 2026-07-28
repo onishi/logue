@@ -51,7 +51,7 @@ describe("App", () => {
 
       await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole("button", { name: "記録項目管理" }));
+      fireEvent.click(screen.getByRole("button", { name: "項目管理" }));
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: "記録項目グループ" })).toBeInTheDocument(),
       );
