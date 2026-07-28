@@ -3,60 +3,10 @@ import { useEffect, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
+import { MetricValueInput } from "./MetricValueInput";
 
 function todayDateString(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function MetricInput({
-  metric,
-  value,
-  disabled,
-  onChange,
-}: {
-  metric: Metric;
-  value: string;
-  disabled: boolean;
-  onChange: (value: string) => void;
-}) {
-  if (metric.type === "choice") {
-    return (
-      <select
-        aria-label={metric.name}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">未入力</option>
-        {metric.choiceOptions.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    );
-  }
-  if (metric.type === "number") {
-    return (
-      <input
-        aria-label={metric.name}
-        type="number"
-        step="any"
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    );
-  }
-  return (
-    <input
-      aria-label={metric.name}
-      type="text"
-      value={value}
-      disabled={disabled}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  );
 }
 
 function groupedActiveMetrics(
@@ -150,7 +100,7 @@ export function EntryFormScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
             <label key={metric.id}>
               {metric.name}
               {metric.unit ? `（${metric.unit}）` : ""}
-              <MetricInput
+              <MetricValueInput
                 metric={metric}
                 value={values[metric.id] ?? ""}
                 disabled={inputsDisabled}
