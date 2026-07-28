@@ -124,6 +124,7 @@ export function EntryFormScreen({
               {entryByMetricId.has(metric.id) && (
                 <button
                   type="button"
+                  className="button-danger"
                   disabled={inputsDisabled}
                   onClick={() => void handleDelete(metric.id)}
                   aria-label={`${metric.name} の記録を削除`}

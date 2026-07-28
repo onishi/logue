@@ -128,7 +128,12 @@ function GroupRow({
       <button type="button" onClick={() => setEditing(true)} aria-label={`${group.name} を編集`}>
         編集
       </button>
-      <button type="button" onClick={onDelete} aria-label={`${group.name} を削除`}>
+      <button
+        type="button"
+        className="button-danger"
+        onClick={onDelete}
+        aria-label={`${group.name} を削除`}
+      >
         削除
       </button>
     </li>
@@ -366,7 +371,12 @@ function MetricRow({
       >
         {metric.isArchived ? "再表示する" : "アーカイブする"}
       </button>
-      <button type="button" onClick={onDelete} aria-label={`${metric.name} を削除`}>
+      <button
+        type="button"
+        className="button-danger"
+        onClick={onDelete}
+        aria-label={`${metric.name} を削除`}
+      >
         削除
       </button>
       {editing && (
