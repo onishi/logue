@@ -111,51 +111,53 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
         ))}
       </fieldset>
 
-      <label>
-        表示単位
-        <select
-          aria-label="表示単位"
-          value={granularity}
-          onChange={(e) => setGranularity(e.target.value as Granularity)}
-        >
-          {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
-            <option key={key} value={key}>
-              {GRANULARITY_LABELS[key]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label>
-        移動平均
-        <select
-          aria-label="移動平均"
-          value={movingAveragePreset}
-          onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
-        >
-          {MOVING_AVERAGE_PRESETS.map((preset) => (
-            <option key={preset.value} value={preset.value}>
-              {preset.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      {movingAveragePreset === -1 && (
+      <div className="control-group">
         <label>
-          期間（日）
-          <input
-            aria-label="移動平均の期間（日）"
-            type="number"
-            min={2}
-            value={customWindow}
-            onChange={(e) => setCustomWindow(Number(e.target.value))}
-          />
+          表示単位
+          <select
+            aria-label="表示単位"
+            value={granularity}
+            onChange={(e) => setGranularity(e.target.value as Granularity)}
+          >
+            {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
+              <option key={key} value={key}>
+                {GRANULARITY_LABELS[key]}
+              </option>
+            ))}
+          </select>
         </label>
-      )}
 
-      <button type="button" onClick={() => setShowTable((v) => !v)}>
-        {showTable ? "グラフで見る" : "表で見る"}
-      </button>
+        <label>
+          移動平均
+          <select
+            aria-label="移動平均"
+            value={movingAveragePreset}
+            onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
+          >
+            {MOVING_AVERAGE_PRESETS.map((preset) => (
+              <option key={preset.value} value={preset.value}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {movingAveragePreset === -1 && (
+          <label>
+            期間（日）
+            <input
+              aria-label="移動平均の期間（日）"
+              type="number"
+              min={2}
+              value={customWindow}
+              onChange={(e) => setCustomWindow(Number(e.target.value))}
+            />
+          </label>
+        )}
+
+        <button type="button" onClick={() => setShowTable((v) => !v)}>
+          {showTable ? "グラフで見る" : "表で見る"}
+        </button>
+      </div>
 
       {selectedMetrics.length === 0 ? (
         <p>記録項目を1つ以上選択してください。</p>
@@ -186,28 +188,30 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
           </table>
         </div>
       ) : (
-        <div style={{ width: "100%", height: 320 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="0" vertical={false} />
-              <XAxis dataKey="label" stroke="var(--text)" tick={{ fill: "var(--text)" }} />
-              <YAxis stroke="var(--text)" tick={{ fill: "var(--text)" }} />
-              <Tooltip formatter={(value: unknown) => formatValue(value)} />
-              {selectedMetrics.length >= 2 && <Legend />}
-              {selectedMetrics.map((metric) => (
-                <Line
-                  key={metric.id}
-                  type="monotone"
-                  dataKey={metric.id}
-                  name={metric.name}
-                  stroke={colorByMetricId.get(metric.id)}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  connectNulls={false}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="chart-card">
+          <div style={{ width: "100%", height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="0" vertical={false} />
+                <XAxis dataKey="label" stroke="var(--text)" tick={{ fill: "var(--text)" }} />
+                <YAxis stroke="var(--text)" tick={{ fill: "var(--text)" }} />
+                <Tooltip formatter={(value: unknown) => formatValue(value)} />
+                {selectedMetrics.length >= 2 && <Legend />}
+                {selectedMetrics.map((metric) => (
+                  <Line
+                    key={metric.id}
+                    type="monotone"
+                    dataKey={metric.id}
+                    name={metric.name}
+                    stroke={colorByMetricId.get(metric.id)}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    connectNulls={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>

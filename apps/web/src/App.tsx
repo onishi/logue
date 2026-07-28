@@ -9,11 +9,11 @@ import { useAuth } from "./hooks/useAuth";
 import { useUserSettings } from "./hooks/useUserSettings";
 
 const TABS = [
-  { key: "entry", label: "記録する" },
-  { key: "list", label: "記録一覧" },
-  { key: "graphs", label: "グラフ" },
-  { key: "metrics", label: "記録項目管理" },
-  { key: "settings", label: "設定" },
+  { key: "entry", label: "記録する", icon: "✏️" },
+  { key: "list", label: "記録一覧", icon: "📋" },
+  { key: "graphs", label: "グラフ", icon: "📈" },
+  { key: "metrics", label: "記録項目管理", icon: "🏷️" },
+  { key: "settings", label: "設定", icon: "⚙️" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -47,11 +47,32 @@ function AuthenticatedApp({
   return (
     <div className="app">
       <h1 className="sr-only">logue</h1>
-      <div className="account-bar">
-        <p>{user.name ?? user.email} でログイン中</p>
-        <button type="button" onClick={onLogout}>
-          ログアウト
-        </button>
+      <header className="app-header">
+        <span className="brand" aria-hidden="true">
+          logue
+        </span>
+        <div className="account-bar">
+          <span className="account-name">{user.name ?? user.email} でログイン中</span>
+          <button type="button" className="icon-button" onClick={onLogout} aria-label="ログアウト">
+            ⏻
+          </button>
+        </div>
+      </header>
+
+      <div className="app-content">
+        {activeTab === "entry" && (
+          <EntryFormScreen
+            key={entryFormDate ?? "today"}
+            apiBaseUrl={apiBaseUrl}
+            initialDate={entryFormDate}
+          />
+        )}
+        {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} onEditDate={editDate} />}
+        {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
+        {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
+        {activeTab === "settings" && (
+          <SettingsScreen theme={settings.theme} onChangeTheme={(t) => void setTheme(t)} />
+        )}
       </div>
 
       <nav className="tab-nav" aria-label="画面切り替え">
@@ -66,24 +87,13 @@ function AuthenticatedApp({
               setActiveTab(tab.key);
             }}
           >
-            {tab.label}
+            <span className="tab-icon" aria-hidden="true">
+              {tab.icon}
+            </span>
+            <span className="tab-label">{tab.label}</span>
           </button>
         ))}
       </nav>
-
-      {activeTab === "entry" && (
-        <EntryFormScreen
-          key={entryFormDate ?? "today"}
-          apiBaseUrl={apiBaseUrl}
-          initialDate={entryFormDate}
-        />
-      )}
-      {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} onEditDate={editDate} />}
-      {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
-      {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
-      {activeTab === "settings" && (
-        <SettingsScreen theme={settings.theme} onChangeTheme={(t) => void setTheme(t)} />
-      )}
     </div>
   );
 }
