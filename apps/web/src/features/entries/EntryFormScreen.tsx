@@ -1,5 +1,6 @@
 import type { Metric, MetricGroup } from "@logue/shared";
 import { useEffect, useState } from "react";
+import { Icon } from "../../components/Icon";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
@@ -132,7 +133,7 @@ export function EntryFormScreen({
                     onClick={() => void handleDelete(metric.id)}
                     aria-label={`${metric.name} の記録を削除`}
                   >
-                    ✕
+                    <Icon name="close" />
                   </button>
                 )}
               </div>

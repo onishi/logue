@@ -1,5 +1,6 @@
 import type { User } from "@logue/shared";
 import { useEffect, useState } from "react";
+import { Icon } from "./components/Icon";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
 import { GraphScreen } from "./features/graphs/GraphScreen";
@@ -10,11 +11,11 @@ import { useUserSettings } from "./hooks/useUserSettings";
 import { entryDateFromSearch, pathForTab, tabFromPath, type TabKey } from "./lib/navigation";
 
 const TABS = [
-  { key: "entry", label: "記録する", icon: "✏️" },
-  { key: "list", label: "記録一覧", icon: "📋" },
-  { key: "graphs", label: "グラフ", icon: "📈" },
-  { key: "metrics", label: "項目管理", icon: "🏷️" },
-  { key: "settings", label: "設定", icon: "⚙️" },
+  { key: "entry", label: "記録する", icon: "edit_square" },
+  { key: "list", label: "記録一覧", icon: "list_alt" },
+  { key: "graphs", label: "グラフ", icon: "monitoring" },
+  { key: "metrics", label: "項目管理", icon: "sell" },
+  { key: "settings", label: "設定", icon: "settings" },
 ] as const;
 
 function AuthenticatedApp({
@@ -69,7 +70,7 @@ function AuthenticatedApp({
         <div className="account-bar">
           <span className="account-name">{user.name ?? user.email} でログイン中</span>
           <button type="button" className="icon-button" onClick={onLogout} aria-label="ログアウト">
-            ⏻
+            <Icon name="logout" />
           </button>
         </div>
       </header>
@@ -101,9 +102,7 @@ function AuthenticatedApp({
               navigate(tab.key);
             }}
           >
-            <span className="tab-icon" aria-hidden="true">
-              {tab.icon}
-            </span>
+            <Icon name={tab.icon} className="tab-icon" />
             <span className="tab-label">{tab.label}</span>
           </button>
         ))}

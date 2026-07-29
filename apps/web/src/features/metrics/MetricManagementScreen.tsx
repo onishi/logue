@@ -1,5 +1,6 @@
 import type { CreateMetricInput, Metric, MetricGroup, MetricType } from "@logue/shared";
 import { useState } from "react";
+import { Icon } from "../../components/Icon";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
 
@@ -44,7 +45,7 @@ function LabelListEditor({
             onClick={() => onChange(labels.filter((_, i) => i !== index))}
             aria-label={`選択肢 ${index + 1} を削除`}
           >
-            ✕
+            <Icon name="close" />
           </button>
         </div>
       ))}
@@ -112,19 +113,21 @@ function GroupRow({
       <span>{group.name}</span>
       <button
         type="button"
+        className="icon-button"
         onClick={onMoveUp}
         disabled={!canMoveUp}
         aria-label={`${group.name} を上に移動`}
       >
-        ↑
+        <Icon name="arrow_upward" />
       </button>
       <button
         type="button"
+        className="icon-button"
         onClick={onMoveDown}
         disabled={!canMoveDown}
         aria-label={`${group.name} を下に移動`}
       >
-        ↓
+        <Icon name="arrow_downward" />
       </button>
       <button type="button" onClick={() => setEditing(true)} aria-label={`${group.name} を編集`}>
         編集
@@ -135,7 +138,7 @@ function GroupRow({
         onClick={onDelete}
         aria-label={`${group.name} を削除`}
       >
-        ✕
+        <Icon name="close" />
       </button>
     </li>
   );
@@ -342,19 +345,21 @@ function MetricRow({
       </div>
       <button
         type="button"
+        className="icon-button"
         onClick={onMoveUp}
         disabled={!canMoveUp}
         aria-label={`${metric.name} を上に移動`}
       >
-        ↑
+        <Icon name="arrow_upward" />
       </button>
       <button
         type="button"
+        className="icon-button"
         onClick={onMoveDown}
         disabled={!canMoveDown}
         aria-label={`${metric.name} を下に移動`}
       >
-        ↓
+        <Icon name="arrow_downward" />
       </button>
       <button
         type="button"
@@ -378,7 +383,7 @@ function MetricRow({
         onClick={onDelete}
         aria-label={`${metric.name} を削除`}
       >
-        ✕
+        <Icon name="close" />
       </button>
       {editing && (
         <MetricGeneralFields
