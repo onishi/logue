@@ -193,6 +193,9 @@ p {
 }
 
 .app {
+  --header-height: 60px;
+  --nav-height: 64px;
+
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -201,15 +204,24 @@ p {
   background: var(--bg);
 }
 
+/*
+ * ヘッダーとタブバーはモバイルアプリのように画面に固定表示する（スクロールしても
+ * 動かない）。position: sticky は中身が短い画面だと画面下端まで届かないため使わず、
+ * position: fixed で常にビューポート基準に固定し、その分の高さを .app-content の
+ * padding で確保する。
+ */
 .app-header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: var(--header-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 0 16px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -249,17 +261,23 @@ p {
 .app-content {
   flex: 1;
   min-height: 0;
+  padding-top: var(--header-height);
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
 }
 
 .tab-nav {
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  z-index: 20;
   display: flex;
   gap: 2px;
+  min-height: var(--nav-height);
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  box-shadow: 0 -6px 16px -6px rgba(0, 0, 0, 0.12);
 }
 
 .tab-nav button {
@@ -275,15 +293,18 @@ p {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text);
+  transition: color 0.15s ease;
 }
 
 .tab-nav .tab-icon {
-  font-size: 20px;
+  font-size: 21px;
   line-height: 1;
+  transition: transform 0.15s ease;
 }
 
 .tab-nav .tab-label {
   font-size: 11px;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
 }
@@ -291,6 +312,10 @@ p {
 .tab-nav button[aria-current="page"] {
   color: var(--accent);
   background: var(--accent-bg);
+}
+
+.tab-nav button[aria-current="page"] .tab-icon {
+  transform: translateY(-1px) scale(1.08);
 }
 
 .screen {
