@@ -7,6 +7,7 @@ import { MetricManagementScreen } from "./features/metrics/MetricManagementScree
 import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { useAuth } from "./hooks/useAuth";
 import { useUserSettings } from "./hooks/useUserSettings";
+import { entryDateFromSearch, pathForTab, tabFromPath, type TabKey } from "./lib/navigation";
 
 const TABS = [
   { key: "entry", label: "記録する", icon: "✏️" },
@@ -15,8 +16,6 @@ const TABS = [
   { key: "metrics", label: "項目管理", icon: "🏷️" },
   { key: "settings", label: "設定", icon: "⚙️" },
 ] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
 
 function AuthenticatedApp({
   apiBaseUrl,
@@ -27,14 +26,30 @@ function AuthenticatedApp({
   user: User;
   onLogout: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<TabKey>("entry");
-  const [entryFormDate, setEntryFormDate] = useState<string | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<TabKey>(() => tabFromPath(window.location.pathname));
+  const [entryFormDate, setEntryFormDate] = useState<string | undefined>(() =>
+    entryDateFromSearch(window.location.search),
+  );
   const { settings, setTheme } = useUserSettings(apiBaseUrl);
 
-  const editDate = (date: string) => {
+  const navigate = (tab: TabKey, date?: string) => {
+    window.history.pushState(null, "", pathForTab(tab, date));
+    setActiveTab(tab);
     setEntryFormDate(date);
-    setActiveTab("entry");
   };
+
+  const editDate = (date: string) => {
+    navigate("entry", date);
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTab(tabFromPath(window.location.pathname));
+      setEntryFormDate(entryDateFromSearch(window.location.search));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     if (settings.theme === "system") {
@@ -82,9 +97,8 @@ function AuthenticatedApp({
             type="button"
             aria-current={activeTab === tab.key ? "page" : undefined}
             onClick={() => {
-              // タブから直接「記録する」を開いたときは常に今日の日付にリセットする
-              if (tab.key === "entry") setEntryFormDate(undefined);
-              setActiveTab(tab.key);
+              // タブから直接「記録する」を開いたときは常に今日の日付にリセットする。
+              navigate(tab.key);
             }}
           >
             <span className="tab-icon" aria-hidden="true">

@@ -14,6 +14,7 @@ describe("App", () => {
     afterEach(() => {
       // @ts-expect-error テスト用に差し替えた fetch を後片付けする
       delete globalThis.fetch;
+      window.history.replaceState(null, "", "/");
     });
 
     it("renders the app name", async () => {
@@ -43,9 +44,10 @@ describe("App", () => {
       // @ts-expect-error テスト用に差し替えた fetch を後片付けする
       delete globalThis.fetch;
       delete document.documentElement.dataset.theme;
+      window.history.replaceState(null, "", "/");
     });
 
-    it("switches between the entry/list/metrics tabs", async () => {
+    it("switches between tabs while updating the browser URL", async () => {
       render(<App apiBaseUrl={API_BASE_URL} />);
       await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
 
@@ -55,11 +57,13 @@ describe("App", () => {
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: "記録項目グループ" })).toBeInTheDocument(),
       );
+      expect(window.location.pathname).toBe("/metrics");
 
       fireEvent.click(screen.getByRole("button", { name: "記録一覧" }));
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: "記録一覧" })).toBeInTheDocument(),
       );
+      expect(window.location.pathname).toBe("/entries");
     });
 
     it("opens 記録する pre-filled with a date's data when its 編集 button is clicked from 記録一覧", async () => {
@@ -95,6 +99,21 @@ describe("App", () => {
       expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-15");
       await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
       expect(screen.getByRole("button", { name: "体重 の記録を削除" })).toBeInTheDocument();
+      expect(window.location.pathname).toBe("/");
+      expect(window.location.search).toBe("?date=2026-07-15");
+    });
+
+    it("opens the screen represented by the current URL", async () => {
+      window.history.replaceState(null, "", "/graphs");
+      render(<App apiBaseUrl={API_BASE_URL} />);
+
+      await waitFor(() =>
+        expect(screen.getByText(/数値型の記録項目がまだありません/)).toBeInTheDocument(),
+      );
+      expect(screen.getByRole("button", { name: "グラフ" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
     });
 
     it("applies the selected theme to the document root", async () => {
