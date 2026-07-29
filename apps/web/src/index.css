@@ -2,7 +2,8 @@
   --text: #5c5850;
   --text-h: #211f1b;
   --bg: #f6f5f3;
-  --surface: #ffffff;
+  --surface: #f9fbfa;
+  --field-fill: #eceae5;
   --border: #e4e2df;
   --accent: #3a7d74;
   --accent-text: #ffffff;
@@ -26,8 +27,8 @@
   --radius: 8px;
   --radius-pill: 999px;
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --sans: "Roboto Variable", "Noto Sans JP", system-ui, "Segoe UI", sans-serif;
+  --heading: "Roboto Variable", "Noto Sans JP", system-ui, "Segoe UI", sans-serif;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
@@ -49,7 +50,8 @@
     --text: #a8a5a0;
     --text-h: #f2f0ed;
     --bg: #17181a;
-    --surface: #212327;
+    --surface: #1d2422;
+    --field-fill: #262c2a;
     --border: #34363b;
     --accent: #6fb8ac;
     --accent-text: #0d1f1c;
@@ -79,7 +81,8 @@
   --text: #5c5850;
   --text-h: #211f1b;
   --bg: #f6f5f3;
-  --surface: #ffffff;
+  --surface: #f9fbfa;
+  --field-fill: #eceae5;
   --border: #e4e2df;
   --accent: #3a7d74;
   --accent-text: #ffffff;
@@ -104,7 +107,8 @@
   --text: #a8a5a0;
   --text-h: #f2f0ed;
   --bg: #17181a;
-  --surface: #212327;
+  --surface: #1d2422;
+  --field-fill: #262c2a;
   --border: #34363b;
   --accent: #6fb8ac;
   --accent-text: #0d1f1c;
@@ -261,6 +265,9 @@ p {
   min-width: 36px;
   padding: 6px !important;
   line-height: 1;
+  border: none !important;
+  background: var(--field-fill) !important;
+  color: var(--text-h) !important;
   border-radius: var(--radius-pill) !important;
 }
 
@@ -286,7 +293,7 @@ p {
   box-shadow: 0 -6px 16px -6px rgba(0, 0, 0, 0.12);
 }
 
-.tab-nav button {
+.app .tab-nav button {
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
@@ -305,7 +312,11 @@ p {
 .tab-nav .tab-icon {
   width: 24px;
   height: 24px;
-  transition: transform 0.15s ease;
+  padding: 4px 20px;
+  box-sizing: content-box;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition: background-color 0.15s ease;
 }
 
 .tab-nav .tab-label {
@@ -317,11 +328,10 @@ p {
 
 .tab-nav button[aria-current="page"] {
   color: var(--accent);
-  background: var(--accent-bg);
 }
 
 .tab-nav button[aria-current="page"] .tab-icon {
-  transform: translateY(-1px) scale(1.08);
+  background: var(--accent-bg);
 }
 
 .screen {
@@ -336,15 +346,46 @@ p {
 
 .app button,
 .landing button {
+  position: relative;
+  overflow: hidden;
   min-height: 40px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-h);
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--accent-border);
+  background: transparent;
+  color: var(--accent);
   font: inherit;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.app button::after {
+  content: "";
+  position: absolute;
+  left: var(--ripple-x, 50%);
+  top: var(--ripple-y, 50%);
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app button.rippling::after {
+  animation: ripple-pop 450ms ease-out;
+}
+
+@keyframes ripple-pop {
+  from {
+    opacity: 0.3;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(22);
+  }
 }
 
 .app button[disabled] {
@@ -357,7 +398,6 @@ p {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-text);
-  font-weight: 600;
 }
 
 .button-danger {
@@ -418,13 +458,24 @@ p {
 
 .screen input,
 .screen select {
-  min-height: 40px;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg);
+  min-height: 44px;
+  padding: 10px 12px 9px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--field-fill);
   color: var(--text-h);
   font: inherit;
+  transition:
+    border-color 0.15s ease,
+    border-bottom-width 0.15s ease;
+}
+
+.screen input:focus,
+.screen select:focus {
+  outline: none;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 8px;
 }
 
 .screen fieldset input[type="checkbox"],

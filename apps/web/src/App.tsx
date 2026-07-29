@@ -9,6 +9,7 @@ import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { useAuth } from "./hooks/useAuth";
 import { useUserSettings } from "./hooks/useUserSettings";
 import { entryDateFromSearch, pathForTab, tabFromPath, type TabKey } from "./lib/navigation";
+import { handleRippleDown } from "./lib/ripple";
 
 const TABS = [
   { key: "entry", label: "記録する", icon: "edit_square" },
@@ -116,7 +117,7 @@ function App({ apiBaseUrl }: { apiBaseUrl: string }) {
 
   if (auth.status === "authenticated") {
     return (
-      <main>
+      <main onPointerDown={handleRippleDown}>
         <AuthenticatedApp
           apiBaseUrl={apiBaseUrl}
           user={auth.user}
@@ -127,7 +128,7 @@ function App({ apiBaseUrl }: { apiBaseUrl: string }) {
   }
 
   return (
-    <main className="landing">
+    <main className="landing" onPointerDown={handleRippleDown}>
       <h1>logue</h1>
       <p>日常の記録をするアプリ</p>
 
