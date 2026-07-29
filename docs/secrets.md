@@ -32,17 +32,25 @@
 Cloudflare Pages 側は GitHub 連携（Git Provider）を設定していないため、現状は手元から
 `wrangler` で手動デプロイする。Phase 8 で GitHub Actions 経由の自動デプロイに置き換える想定。
 
+リポジトリルートから1コマンドで API・Web 両方をデプロイできる（内部で `wrangler` に
+`--config`/ワークスペース指定を渡しているため `cd` は不要）。
+
+```bash
+npm run deploy
+```
+
+API・Web を個別にデプロイしたい場合は `npm run deploy:api` / `npm run deploy:web` を使う。
+中身は以下と同等:
+
 ```bash
 # API（Cloudflare Workers）: D1 のリモートマイグレーション適用 → デプロイ
-cd apps/api
-npx wrangler d1 migrations apply logue-db --remote
-npx wrangler deploy
+npx wrangler d1 migrations apply logue-db --remote --config apps/api/wrangler.toml
+npx wrangler deploy --config apps/api/wrangler.toml
 
 # Web（Cloudflare Pages）: 本番 API の URL を指定してビルド → デプロイ
-cd apps/web
-echo "VITE_API_BASE_URL=https://logue-api.anison.workers.dev" > .env.production
-npm run build
-npx wrangler pages deploy dist --project-name logue-web
+echo "VITE_API_BASE_URL=https://logue-api.anison.workers.dev" > apps/web/.env.production
+npm run build --workspace apps/web
+npx wrangler pages deploy apps/web/dist --project-name logue-web
 ```
 
 - 本番 URL: Web = `https://logue-web.pages.dev` / API = `https://logue-api.anison.workers.dev`

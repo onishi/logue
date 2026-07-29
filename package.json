@@ -12,7 +12,10 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "jest",
     "dev:web": "npm run dev --workspace apps/web",
-    "dev:api": "npm run dev --workspace apps/api"
+    "dev:api": "npm run dev --workspace apps/api",
+    "deploy:api": "npx wrangler d1 migrations apply logue-db --remote --config apps/api/wrangler.toml && npx wrangler deploy --config apps/api/wrangler.toml",
+    "deploy:web": "echo VITE_API_BASE_URL=https://logue-api.anison.workers.dev > apps/web/.env.production && npm run build --workspace apps/web && npx wrangler pages deploy apps/web/dist --project-name logue-web",
+    "deploy": "npm run deploy:api && npm run deploy:web"
   },
   "overrides": {
     "sharp": "^0.35.3"
