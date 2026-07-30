@@ -91,7 +91,7 @@ export function EntryFormScreen({
   if (sections.length === 0) {
     return (
       <div className="screen">
-        <h2>記録する</h2>
+        <h2 className="sr-only">記録する</h2>
         <p>記録項目がまだありません。「項目管理」から記録項目を追加してください。</p>
       </div>
     );
@@ -99,16 +99,13 @@ export function EntryFormScreen({
 
   return (
     <form className="screen" onSubmit={(e) => void submit(e)}>
-      <h2>記録する</h2>
-      <label>
-        日付
-        <input
-          aria-label="記録日"
-          type="date"
-          value={recordedAt}
-          onChange={(e) => setRecordedAt(e.target.value)}
-        />
-      </label>
+      <h2 className="sr-only">記録する</h2>
+      <input
+        aria-label="記録日"
+        type="date"
+        value={recordedAt}
+        onChange={(e) => setRecordedAt(e.target.value)}
+      />
       {sections.map(({ group, metrics: sectionMetrics }) => (
         <fieldset key={group?.id ?? "ungrouped"}>
           <legend>{group?.name ?? "未分類"}</legend>
