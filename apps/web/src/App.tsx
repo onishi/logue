@@ -65,9 +65,16 @@ function AuthenticatedApp({
     <div className="app">
       <h1 className="sr-only">logue</h1>
       <header className="app-header">
-        <span className="brand" aria-hidden="true">
+        <a
+          href="/"
+          className="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("entry");
+          }}
+        >
           logue
-        </span>
+        </a>
         <div className="account-bar">
           <span className="account-name">{user.name ?? user.email} でログイン中</span>
           <button type="button" className="icon-button" onClick={onLogout} aria-label="ログアウト">
