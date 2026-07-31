@@ -98,7 +98,7 @@ describe("App", () => {
       await waitFor(() => expect(screen.getByLabelText("記録日")).toBeInTheDocument());
       expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-15");
       await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
-      expect(screen.getByRole("button", { name: "体重 の記録を削除" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "体重 の入力を消す" })).toBeInTheDocument();
       expect(window.location.pathname).toBe("/");
       expect(window.location.search).toBe("?date=2026-07-15");
     });

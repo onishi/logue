@@ -132,6 +132,52 @@ describe("EntryFormScreen", () => {
     expect(server.entries[0]).toMatchObject({ id: "e1", value: "71.5", recordedAt: "2026-07-15" });
   });
 
+  it("clears the field's text via the small clear button without touching the server", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push({ id: "e1", metricId: "m1", value: "70.0", recordedAt: "2026-07-15" });
+
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} initialDate="2026-07-15" />);
+    await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
+
+    fireEvent.click(screen.getByRole("button", { name: "体重 の入力を消す" }));
+
+    expect(screen.getByLabelText("体重")).toHaveValue(null);
+    expect(server.entries).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "体重 の入力を消す" })).not.toBeInTheDocument();
+  });
+
+  it("deletes the existing entry when its field is cleared and the form is submitted", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push({ id: "e1", metricId: "m1", value: "70.0", recordedAt: "2026-07-15" });
+
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} initialDate="2026-07-15" />);
+    await waitFor(() => expect(screen.getByLabelText("体重")).toHaveValue(70));
+
+    fireEvent.click(screen.getByRole("button", { name: "体重 の入力を消す" }));
+    fireEvent.click(screen.getByRole("button", { name: "記録する" }));
+
+    await waitFor(() => expect(screen.getByText("記録しました")).toBeInTheDocument());
+    expect(server.entries).toHaveLength(0);
+  });
+
   it("disables the inputs while loading the selected date's existing entries", async () => {
     server.metrics.push({
       id: "m1",

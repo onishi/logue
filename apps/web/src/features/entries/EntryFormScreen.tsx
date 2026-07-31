@@ -46,12 +46,6 @@ export function EntryFormScreen({
 
   const entryByMetricId = new Map(entries.map((entry) => [entry.metricId, entry]));
 
-  const handleDelete = async (metricId: string) => {
-    const entry = entryByMetricId.get(metricId);
-    if (!entry) return;
-    await remove(entry.id);
-  };
-
   // 選択中の日付にすでに記録済みの値をフォームへ反映する（同じ項目・同じ日は上書き保存になる）。
   // 取得中は入力欄を disabled にしておき、読み込み完了前にユーザーが入力した内容を
   // この反映処理が上書きしてしまわないようにする。
@@ -71,15 +65,28 @@ export function EntryFormScreen({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const changed = Object.entries(values).filter(([, value]) => value.trim() !== "");
-    if (changed.length === 0) return;
+    const allMetrics = sections.flatMap((s) => s.metrics);
+    const toUpsert: { metricId: string; value: string }[] = [];
+    const toDeleteIds: string[] = [];
+    for (const metric of allMetrics) {
+      const value = (values[metric.id] ?? "").trim();
+      const existing = entryByMetricId.get(metric.id);
+      if (value !== "") {
+        toUpsert.push({ metricId: metric.id, value });
+      } else if (existing) {
+        // 既存の記録を空にして保存した場合は削除扱いにする
+        toDeleteIds.push(existing.id);
+      }
+    }
+    if (toUpsert.length === 0 && toDeleteIds.length === 0) return;
 
     setSubmitting(true);
     setMessage(null);
     try {
-      await Promise.all(
-        changed.map(([metricId, value]) => create({ metricId, value: value.trim(), recordedAt })),
-      );
+      await Promise.all([
+        ...toUpsert.map((input) => create({ ...input, recordedAt })),
+        ...toDeleteIds.map((id) => remove(id)),
+      ]);
       setMessage("記録しました");
     } catch {
       setMessage("記録に失敗しました");
@@ -122,13 +129,13 @@ export function EntryFormScreen({
                   disabled={inputsDisabled}
                   onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
                 />
-                {entryByMetricId.has(metric.id) && (
+                {(values[metric.id] ?? "") !== "" && (
                   <button
                     type="button"
                     className="icon-button button-danger"
                     disabled={inputsDisabled}
-                    onClick={() => void handleDelete(metric.id)}
-                    aria-label={`${metric.name} の記録を削除`}
+                    onClick={() => setValues((prev) => ({ ...prev, [metric.id]: "" }))}
+                    aria-label={`${metric.name} の入力を消す`}
                   >
                     <Icon name="close" />
                   </button>
