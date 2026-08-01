@@ -65,139 +65,7 @@ describe("GraphScreen", () => {
     );
   });
 
-  it("prompts for a metric selection before showing data", async () => {
-    server.metrics.push({
-      id: "m1",
-      metricGroupId: null,
-      name: "体重",
-      type: "number",
-      unit: "kg",
-      sortOrder: 0,
-      isArchived: false,
-      choiceOptions: [],
-    });
-
-    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-    expect(screen.getByText("記録項目を1つ以上選択してください。")).toBeInTheDocument();
-  });
-
-  it("shows a data table with per-day averages once a metric is selected", async () => {
-    server.metrics.push({
-      id: "m1",
-      metricGroupId: null,
-      name: "体重",
-      type: "number",
-      unit: "kg",
-      sortOrder: 0,
-      isArchived: false,
-      choiceOptions: [],
-    });
-    server.entries.push(
-      { id: "e1", metricId: "m1", value: "70", recordedAt: "2026-07-01" },
-      { id: "e2", metricId: "m1", value: "72", recordedAt: "2026-07-01" },
-      { id: "e3", metricId: "m1", value: "71", recordedAt: "2026-07-02" },
-    );
-
-    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-
-    fireEvent.click(screen.getByLabelText("体重（kg）"));
-    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
-
-    const rows = await screen.findAllByRole("row");
-    expect(rows[1]).toHaveTextContent("2026-07-01");
-    expect(rows[1]).toHaveTextContent("71"); // (70+72)/2
-    expect(rows[2]).toHaveTextContent("2026-07-02");
-    expect(rows[2]).toHaveTextContent("71");
-  });
-
-  it("applies the moving average window to the table values", async () => {
-    server.metrics.push({
-      id: "m1",
-      metricGroupId: null,
-      name: "体重",
-      type: "number",
-      unit: "kg",
-      sortOrder: 0,
-      isArchived: false,
-      choiceOptions: [],
-    });
-    server.entries.push(
-      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-07-01" },
-      { id: "e2", metricId: "m1", value: "20", recordedAt: "2026-07-02" },
-    );
-
-    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-    fireEvent.click(screen.getByLabelText("体重（kg）"));
-    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
-
-    fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "30" } });
-
-    const rows = await screen.findAllByRole("row");
-    expect(rows[2]).toHaveTextContent("2026-07-02");
-    expect(rows[2]).toHaveTextContent("15"); // (10+20)/2 の30日移動平均
-  });
-
-  it("applies a custom moving average window when selected", async () => {
-    server.metrics.push({
-      id: "m1",
-      metricGroupId: null,
-      name: "体重",
-      type: "number",
-      unit: "kg",
-      sortOrder: 0,
-      isArchived: false,
-      choiceOptions: [],
-    });
-    server.entries.push(
-      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-07-01" },
-      { id: "e2", metricId: "m1", value: "30", recordedAt: "2026-07-02" },
-    );
-
-    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-    fireEvent.click(screen.getByLabelText("体重（kg）"));
-    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
-
-    fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "-1" } });
-    fireEvent.change(screen.getByLabelText("移動平均の期間（日）"), { target: { value: "2" } });
-
-    const rows = await screen.findAllByRole("row");
-    expect(rows[2]).toHaveTextContent("2026-07-02");
-    expect(rows[2]).toHaveTextContent("20"); // (10+30)/2 の2日移動平均
-  });
-
-  it("aggregates the table by month when the granularity is changed", async () => {
-    server.metrics.push({
-      id: "m1",
-      metricGroupId: null,
-      name: "体重",
-      type: "number",
-      unit: "kg",
-      sortOrder: 0,
-      isArchived: false,
-      choiceOptions: [],
-    });
-    server.entries.push(
-      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-06-01" },
-      { id: "e2", metricId: "m1", value: "20", recordedAt: "2026-07-01" },
-    );
-
-    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-    fireEvent.click(screen.getByLabelText("体重（kg）"));
-    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
-
-    fireEvent.change(screen.getByLabelText("表示単位"), { target: { value: "month" } });
-
-    const rows = await screen.findAllByRole("row");
-    expect(rows[1]).toHaveTextContent("2026-06");
-    expect(rows[2]).toHaveTextContent("2026-07");
-  });
-
-  it("renders the chart view without crashing when multiple metrics are selected", async () => {
+  it("shows a chart for each number metric by default, without any selection step", async () => {
     server.metrics.push(
       {
         id: "m1",
@@ -226,12 +94,148 @@ describe("GraphScreen", () => {
     );
 
     render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByLabelText("体重（kg）")).toBeInTheDocument());
-    fireEvent.click(screen.getByLabelText("体重（kg）"));
-    fireEvent.click(screen.getByLabelText("体脂肪率（%）"));
-
     await waitFor(() =>
-      expect(document.querySelector(".recharts-responsive-container")).toBeInTheDocument(),
+      expect(document.querySelectorAll(".recharts-responsive-container")).toHaveLength(2),
     );
+    expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "体脂肪率（%）" })).toBeInTheDocument();
+  });
+
+  it("shows a guidance message per metric when it has no entries yet", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
+    );
+    expect(screen.getByText("記録がありません。")).toBeInTheDocument();
+  });
+
+  it("shows a data table with per-day averages for the metric", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push(
+      { id: "e1", metricId: "m1", value: "70", recordedAt: "2026-07-01" },
+      { id: "e2", metricId: "m1", value: "72", recordedAt: "2026-07-01" },
+      { id: "e3", metricId: "m1", value: "71", recordedAt: "2026-07-02" },
+    );
+
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
+
+    const rows = await screen.findAllByRole("row");
+    expect(rows[1]).toHaveTextContent("2026-07-01");
+    expect(rows[1]).toHaveTextContent("71"); // (70+72)/2
+    expect(rows[2]).toHaveTextContent("2026-07-02");
+    expect(rows[2]).toHaveTextContent("71");
+  });
+
+  it("applies the moving average window to the table values", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push(
+      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-07-01" },
+      { id: "e2", metricId: "m1", value: "20", recordedAt: "2026-07-02" },
+    );
+
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
+
+    fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "30" } });
+
+    const rows = await screen.findAllByRole("row");
+    expect(rows[2]).toHaveTextContent("2026-07-02");
+    expect(rows[2]).toHaveTextContent("15"); // (10+20)/2 の30日移動平均
+  });
+
+  it("applies a custom moving average window when selected", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push(
+      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-07-01" },
+      { id: "e2", metricId: "m1", value: "30", recordedAt: "2026-07-02" },
+    );
+
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
+
+    fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "-1" } });
+    fireEvent.change(screen.getByLabelText("移動平均の期間（日）"), { target: { value: "2" } });
+
+    const rows = await screen.findAllByRole("row");
+    expect(rows[2]).toHaveTextContent("2026-07-02");
+    expect(rows[2]).toHaveTextContent("20"); // (10+30)/2 の2日移動平均
+  });
+
+  it("aggregates the table by month when the granularity is changed", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+    server.entries.push(
+      { id: "e1", metricId: "m1", value: "10", recordedAt: "2026-06-01" },
+      { id: "e2", metricId: "m1", value: "20", recordedAt: "2026-07-01" },
+    );
+
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
+
+    fireEvent.change(screen.getByLabelText("表示単位"), { target: { value: "month" } });
+
+    const rows = await screen.findAllByRole("row");
+    expect(rows[1]).toHaveTextContent("2026-06");
+    expect(rows[2]).toHaveTextContent("2026-07");
   });
 });

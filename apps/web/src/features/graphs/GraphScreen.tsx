@@ -2,7 +2,6 @@ import type { Metric } from "@logue/shared";
 import { useMemo, useState } from "react";
 import {
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -14,11 +13,11 @@ import { useEntries } from "../../hooks/useEntries";
 import { useMetrics } from "../../hooks/useMetrics";
 import {
   aggregateByGranularity,
-  mergeSeriesForChart,
   movingAverage,
   seriesColorVar,
   toDailySeries,
   type Granularity,
+  type SeriesPoint,
 } from "../../lib/graphData";
 
 const GRANULARITY_LABELS: Record<Granularity, string> = {
@@ -48,12 +47,7 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
       metrics.filter((m): m is Metric & { type: "number" } => m.type === "number" && !m.isArchived),
     [metrics],
   );
-  const colorByMetricId = useMemo(
-    () => new Map(numberMetrics.map((m, index) => [m.id, seriesColorVar(index)])),
-    [numberMetrics],
-  );
 
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [granularity, setGranularity] = useState<Granularity>("day");
   const [movingAveragePreset, setMovingAveragePreset] = useState<number>(0);
   const [customWindow, setCustomWindow] = useState(14);
@@ -61,27 +55,17 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
 
   const movingAverageWindow = movingAveragePreset === -1 ? customWindow : movingAveragePreset;
 
-  const selectedMetrics = numberMetrics.filter((m) => selectedIds.has(m.id));
-
-  const chartData = useMemo(() => {
-    const seriesList = selectedMetrics.map((metric) => {
+  const seriesByMetricId = useMemo(() => {
+    const map = new Map<string, SeriesPoint[]>();
+    for (const metric of numberMetrics) {
       const metricEntries = entries.filter((e) => e.metricId === metric.id);
       let series = toDailySeries(metricEntries);
       if (movingAverageWindow > 1) series = movingAverage(series, movingAverageWindow);
       series = aggregateByGranularity(series, granularity);
-      return { metricId: metric.id, points: series };
-    });
-    return mergeSeriesForChart(seriesList);
-  }, [selectedMetrics, entries, movingAverageWindow, granularity]);
-
-  const toggleMetric = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+      map.set(metric.id, series);
+    }
+    return map;
+  }, [numberMetrics, entries, movingAverageWindow, granularity]);
 
   if (numberMetrics.length === 0) {
     return (
@@ -95,21 +79,6 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   return (
     <div className="screen">
       <h2>グラフ</h2>
-
-      <fieldset>
-        <legend>表示する記録項目</legend>
-        {numberMetrics.map((metric) => (
-          <label key={metric.id}>
-            <input
-              type="checkbox"
-              checked={selectedIds.has(metric.id)}
-              onChange={() => toggleMetric(metric.id)}
-            />
-            {metric.name}
-            {metric.unit ? `（${metric.unit}）` : ""}
-          </label>
-        ))}
-      </fieldset>
 
       <div className="control-group">
         <label>
@@ -159,61 +128,57 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
         </button>
       </div>
 
-      {selectedMetrics.length === 0 ? (
-        <p>記録項目を1つ以上選択してください。</p>
-      ) : showTable ? (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>日付</th>
-                {selectedMetrics.map((metric) => (
-                  <th key={metric.id}>
-                    {metric.name}
-                    {metric.unit ? `（${metric.unit}）` : ""}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {chartData.map((row) => (
-                <tr key={row.label as string}>
-                  <td>{row.label}</td>
-                  {selectedMetrics.map((metric) => (
-                    <td key={metric.id}>{formatValue(row[metric.id])}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="chart-card">
-          <div style={{ width: "100%", height: 320 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="0" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--text)" tick={{ fill: "var(--text)" }} />
-                <YAxis stroke="var(--text)" tick={{ fill: "var(--text)" }} />
-                <Tooltip formatter={(value: unknown) => formatValue(value)} />
-                {selectedMetrics.length >= 2 && <Legend />}
-                {selectedMetrics.map((metric) => (
-                  <Line
-                    key={metric.id}
-                    type="monotone"
-                    dataKey={metric.id}
-                    name={metric.name}
-                    stroke={colorByMetricId.get(metric.id)}
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    connectNulls={false}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
+      {numberMetrics.map((metric, index) => {
+        const series = seriesByMetricId.get(metric.id) ?? [];
+        const label = metric.unit ? `${metric.name}（${metric.unit}）` : metric.name;
+        return (
+          <div key={metric.id} className="chart-card">
+            <h3>{label}</h3>
+            {series.length === 0 ? (
+              <p>記録がありません。</p>
+            ) : showTable ? (
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>日付</th>
+                      <th>{label}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {series.map((point) => (
+                      <tr key={point.date}>
+                        <td>{point.date}</td>
+                        <td>{formatValue(point.value)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ width: "100%", height: 240 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={series}>
+                    <CartesianGrid stroke="var(--border)" strokeDasharray="0" vertical={false} />
+                    <XAxis dataKey="date" stroke="var(--text)" tick={{ fill: "var(--text)" }} />
+                    <YAxis stroke="var(--text)" tick={{ fill: "var(--text)" }} />
+                    <Tooltip formatter={(value: unknown) => formatValue(value)} />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      name={label}
+                      stroke={seriesColorVar(index)}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      connectNulls={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }
