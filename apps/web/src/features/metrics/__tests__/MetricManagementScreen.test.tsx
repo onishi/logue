@@ -72,15 +72,17 @@ describe("MetricManagementScreen", () => {
     render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
     await waitFor(() => expect(screen.getByText(/体重/)).toBeInTheDocument());
 
+    // アーカイブ・削除は編集を開いた先にある
+    fireEvent.click(screen.getByRole("button", { name: "体重 を編集" }));
     fireEvent.click(screen.getByRole("button", { name: "体重 をアーカイブする" }));
     await waitFor(() => expect(screen.getByText(/アーカイブ済み/)).toBeInTheDocument());
     expect(server.metrics[0]?.isArchived).toBe(true);
 
-    fireEvent.click(screen.getByRole("button", { name: "体重 を編集" }));
     fireEvent.change(screen.getByLabelText("体重 の新しい名前"), { target: { value: "体重(朝)" } });
     fireEvent.click(screen.getByRole("button", { name: "体重 の変更を保存" }));
     await waitFor(() => expect(screen.getByText(/体重\(朝\)/)).toBeInTheDocument());
 
+    fireEvent.click(screen.getByRole("button", { name: "体重(朝) を編集" }));
     fireEvent.click(screen.getByRole("button", { name: "体重(朝) を削除" }));
     await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText(/体重/)).not.toBeInTheDocument());
@@ -102,6 +104,23 @@ describe("MetricManagementScreen", () => {
       const groupItems = items.filter((li) => within(li).queryByText(/体組成|食事/));
       expect(groupItems[0]).toHaveTextContent("食事");
     });
+  });
+
+  it("deletes a group from within its edit view", async () => {
+    server.groups.push({ id: "g1", name: "体組成", sortOrder: 0 });
+    render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(screen.getByText("体組成", { selector: "span" })).toBeInTheDocument(),
+    );
+
+    // 削除は編集を開いた先にある
+    expect(screen.queryByRole("button", { name: "体組成 を削除" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "体組成 を編集" }));
+    fireEvent.click(screen.getByRole("button", { name: "体組成 を削除" }));
+
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByText("体組成")).not.toBeInTheDocument());
+    expect(server.groups).toHaveLength(0);
   });
 
   it("saves choice options separately from the general fields", async () => {

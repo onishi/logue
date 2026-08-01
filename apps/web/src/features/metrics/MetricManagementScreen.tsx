@@ -104,6 +104,14 @@ function GroupRow({
         >
           キャンセル
         </button>
+        <button
+          type="button"
+          className="button-danger"
+          onClick={onDelete}
+          aria-label={`${group.name} を削除`}
+        >
+          削除
+        </button>
       </li>
     );
   }
@@ -131,14 +139,6 @@ function GroupRow({
       </button>
       <button type="button" onClick={() => setEditing(true)} aria-label={`${group.name} を編集`}>
         編集
-      </button>
-      <button
-        type="button"
-        className="icon-button button-danger"
-        onClick={onDelete}
-        aria-label={`${group.name} を削除`}
-      >
-        <Icon name="close" />
       </button>
     </li>
   );
@@ -368,36 +368,42 @@ function MetricRow({
       >
         {editing ? "閉じる" : "編集"}
       </button>
-      <button
-        type="button"
-        onClick={onToggleArchive}
-        aria-label={
-          metric.isArchived ? `${metric.name} を再表示する` : `${metric.name} をアーカイブする`
-        }
-      >
-        {metric.isArchived ? "再表示する" : "アーカイブする"}
-      </button>
-      <button
-        type="button"
-        className="icon-button button-danger"
-        onClick={onDelete}
-        aria-label={`${metric.name} を削除`}
-      >
-        <Icon name="close" />
-      </button>
       {editing && (
-        <MetricGeneralFields
-          metric={metric}
-          groups={groups}
-          onSave={async (input) => {
-            await onSaveGeneral(input);
-            setEditing(false);
-          }}
-          onCancel={() => setEditing(false)}
-        />
-      )}
-      {editing && metric.type === "choice" && (
-        <MetricChoiceOptionsEditor metric={metric} onSave={onSaveChoiceOptions} />
+        <>
+          <MetricGeneralFields
+            metric={metric}
+            groups={groups}
+            onSave={async (input) => {
+              await onSaveGeneral(input);
+              setEditing(false);
+            }}
+            onCancel={() => setEditing(false)}
+          />
+          {metric.type === "choice" && (
+            <MetricChoiceOptionsEditor metric={metric} onSave={onSaveChoiceOptions} />
+          )}
+          <div className="danger-zone">
+            <button
+              type="button"
+              onClick={onToggleArchive}
+              aria-label={
+                metric.isArchived
+                  ? `${metric.name} を再表示する`
+                  : `${metric.name} をアーカイブする`
+              }
+            >
+              {metric.isArchived ? "再表示する" : "アーカイブする"}
+            </button>
+            <button
+              type="button"
+              className="button-danger"
+              onClick={onDelete}
+              aria-label={`${metric.name} を削除`}
+            >
+              削除
+            </button>
+          </div>
+        </>
       )}
     </li>
   );
