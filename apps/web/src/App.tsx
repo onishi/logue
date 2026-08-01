@@ -1,6 +1,7 @@
 import type { User } from "@logue/shared";
 import { useEffect, useState } from "react";
 import { Icon } from "./components/Icon";
+import { UserMenu } from "./components/UserMenu";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
 import { GraphScreen } from "./features/graphs/GraphScreen";
@@ -16,7 +17,6 @@ const TABS = [
   { key: "list", label: "記録一覧", icon: "list_alt" },
   { key: "graphs", label: "グラフ", icon: "monitoring" },
   { key: "metrics", label: "項目管理", icon: "sell" },
-  { key: "settings", label: "設定", icon: "settings" },
 ] as const;
 
 function AuthenticatedApp({
@@ -75,12 +75,12 @@ function AuthenticatedApp({
         >
           logue
         </a>
-        <div className="account-bar">
-          <span className="account-name">{user.name ?? user.email} でログイン中</span>
-          <button type="button" className="icon-button" onClick={onLogout} aria-label="ログアウト">
-            <Icon name="logout" />
-          </button>
-        </div>
+        <UserMenu
+          user={user}
+          onOpenMetrics={() => navigate("metrics")}
+          onOpenSettings={() => navigate("settings")}
+          onLogout={onLogout}
+        />
       </header>
 
       <div className="app-content">
