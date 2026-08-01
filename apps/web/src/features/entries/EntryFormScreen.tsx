@@ -116,33 +116,35 @@ export function EntryFormScreen({
       {sections.map(({ group, metrics: sectionMetrics }) => (
         <fieldset key={group?.id ?? "ungrouped"}>
           <legend>{group?.name ?? "未分類"}</legend>
-          {sectionMetrics.map((metric) => (
-            <label key={metric.id}>
-              <span className="field-label">
-                {metric.name}
-                {metric.unit ? `（${metric.unit}）` : ""}
-              </span>
-              <div className="entry-input-row">
-                <MetricValueInput
-                  metric={metric}
-                  value={values[metric.id] ?? ""}
-                  disabled={inputsDisabled}
-                  onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
-                />
-                {(values[metric.id] ?? "") !== "" && (
-                  <button
-                    type="button"
-                    className="icon-button button-danger"
+          <div className="entry-fields">
+            {sectionMetrics.map((metric) => (
+              <label key={metric.id} className="entry-field">
+                <span className="field-label">
+                  {metric.name}
+                  {metric.unit ? `（${metric.unit}）` : ""}
+                </span>
+                <div className="entry-input-row">
+                  <MetricValueInput
+                    metric={metric}
+                    value={values[metric.id] ?? ""}
                     disabled={inputsDisabled}
-                    onClick={() => setValues((prev) => ({ ...prev, [metric.id]: "" }))}
-                    aria-label={`${metric.name} の入力を消す`}
-                  >
-                    <Icon name="close" />
-                  </button>
-                )}
-              </div>
-            </label>
-          ))}
+                    onChange={(value) => setValues((prev) => ({ ...prev, [metric.id]: value }))}
+                  />
+                  {(values[metric.id] ?? "") !== "" && (
+                    <button
+                      type="button"
+                      className="icon-button button-danger"
+                      disabled={inputsDisabled}
+                      onClick={() => setValues((prev) => ({ ...prev, [metric.id]: "" }))}
+                      aria-label={`${metric.name} の入力を消す`}
+                    >
+                      <Icon name="close" />
+                    </button>
+                  )}
+                </div>
+              </label>
+            ))}
+          </div>
         </fieldset>
       ))}
       <button type="submit" disabled={inputsDisabled}>
