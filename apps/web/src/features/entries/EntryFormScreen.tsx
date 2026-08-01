@@ -4,6 +4,7 @@ import { Icon } from "../../components/Icon";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
+import { shiftDate } from "../../lib/date";
 import { MetricValueInput } from "./MetricValueInput";
 
 function todayDateString(): string {
@@ -107,12 +108,30 @@ export function EntryFormScreen({
   return (
     <form className="screen" onSubmit={(e) => void submit(e)}>
       <h2 className="sr-only">記録する</h2>
-      <input
-        aria-label="記録日"
-        type="date"
-        value={recordedAt}
-        onChange={(e) => setRecordedAt(e.target.value)}
-      />
+      <div className="date-pager">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={() => setRecordedAt((prev) => shiftDate(prev, -1))}
+          aria-label="前の日"
+        >
+          <Icon name="chevron_left" />
+        </button>
+        <input
+          aria-label="記録日"
+          type="date"
+          value={recordedAt}
+          onChange={(e) => setRecordedAt(e.target.value)}
+        />
+        <button
+          type="button"
+          className="icon-button"
+          onClick={() => setRecordedAt((prev) => shiftDate(prev, 1))}
+          aria-label="次の日"
+        >
+          <Icon name="chevron_right" />
+        </button>
+      </div>
       {sections.map(({ group, metrics: sectionMetrics }) => (
         <fieldset key={group?.id ?? "ungrouped"}>
           <legend>{group?.name ?? "未分類"}</legend>
