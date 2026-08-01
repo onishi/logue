@@ -49,7 +49,9 @@ describe("App", () => {
 
     it("switches between tabs while updating the browser URL", async () => {
       render(<App apiBaseUrl={API_BASE_URL} />);
-      await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Taro のメニュー" })).toBeInTheDocument(),
+      );
 
       await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
 
@@ -88,7 +90,9 @@ describe("App", () => {
       }) as unknown as typeof fetch;
 
       render(<App apiBaseUrl={API_BASE_URL} />);
-      await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Taro のメニュー" })).toBeInTheDocument(),
+      );
 
       fireEvent.click(screen.getByRole("button", { name: "記録一覧" }));
       await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
@@ -118,10 +122,13 @@ describe("App", () => {
 
     it("applies the selected theme to the document root", async () => {
       render(<App apiBaseUrl={API_BASE_URL} />);
-      await waitFor(() => expect(screen.getByText(/Taro でログイン中/)).toBeInTheDocument());
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Taro のメニュー" })).toBeInTheDocument(),
+      );
       expect(document.documentElement.dataset.theme).toBeUndefined();
 
-      fireEvent.click(screen.getByRole("button", { name: "設定" }));
+      fireEvent.click(screen.getByRole("button", { name: "Taro のメニュー" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: "設定" }));
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument(),
       );
