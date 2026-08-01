@@ -402,6 +402,17 @@ p {
   box-sizing: border-box;
 }
 
+.date-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-pager input {
+  flex: 1;
+  min-width: 0;
+}
+
 .app button,
 .landing button {
   position: relative;

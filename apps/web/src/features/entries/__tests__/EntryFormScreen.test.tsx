@@ -178,6 +178,31 @@ describe("EntryFormScreen", () => {
     expect(server.entries).toHaveLength(0);
   });
 
+  it("moves to the previous/next day via the date pager buttons", async () => {
+    server.metrics.push({
+      id: "m1",
+      metricGroupId: null,
+      name: "体重",
+      type: "number",
+      unit: "kg",
+      sortOrder: 0,
+      isArchived: false,
+      choiceOptions: [],
+    });
+
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} initialDate="2026-07-15" />);
+    await waitFor(() => expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-15"));
+
+    fireEvent.click(screen.getByRole("button", { name: "前の日" }));
+    await waitFor(() => expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-14"));
+
+    fireEvent.click(screen.getByRole("button", { name: "次の日" }));
+    await waitFor(() => expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-15"));
+
+    fireEvent.click(screen.getByRole("button", { name: "次の日" }));
+    await waitFor(() => expect(screen.getByLabelText("記録日")).toHaveValue("2026-07-16"));
+  });
+
   it("disables the inputs while loading the selected date's existing entries", async () => {
     server.metrics.push({
       id: "m1",
