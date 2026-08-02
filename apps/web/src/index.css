@@ -321,15 +321,34 @@ p {
   background: var(--accent-bg);
 }
 
+/*
+ * 操作用のアイコンボタンは丸い塗りつぶし背景を持たせず、アイコンだけのシンプルな見た目にする。
+ * ホバー・フォーカス時のみ淡い背景（ステートレイヤー）を出してタップ可能であることを示す。
+ */
 .icon-button {
   min-height: 36px !important;
   min-width: 36px;
   padding: 6px !important;
   line-height: 1;
   border: none !important;
-  background: var(--field-fill) !important;
+  background: transparent !important;
   color: var(--text-h) !important;
   border-radius: var(--radius-pill) !important;
+  transition: background-color 0.15s ease;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  background: var(--field-fill) !important;
+}
+
+.icon-button.button-danger {
+  background: transparent !important;
+}
+
+.icon-button.button-danger:hover,
+.icon-button.button-danger:focus-visible {
+  background: var(--danger-bg) !important;
 }
 
 .app-content {
