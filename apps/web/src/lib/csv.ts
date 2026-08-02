@@ -1,4 +1,4 @@
-import type { Metric } from "@logue/shared";
+export { metricColumnLabel } from "@logue/shared";
 
 function escapeField(field: string): string {
   return /[",\r\n]/.test(field) ? `"${field.replace(/"/g, '""')}"` : field;
@@ -64,10 +64,6 @@ export function parseCsv(text: string): string[][] {
     pushRow();
   }
   return rows;
-}
-
-export function metricColumnLabel(metric: Metric): string {
-  return `${metric.name}${metric.unit ? `（${metric.unit}）` : ""}${metric.isArchived ? " [アーカイブ済み]" : ""}`;
 }
 
 // Excel 等で開いても文字化けしないよう UTF-8 BOM (U+FEFF) を付与する。
