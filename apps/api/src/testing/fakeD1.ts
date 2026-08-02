@@ -14,6 +14,7 @@ const TABLE_NAMES = [
   "choice_options",
   "entries",
   "user_settings",
+  "google_sheets_connections",
 ] as const;
 
 function matchCondition(row: Row, cond: string, arg: unknown): boolean {
