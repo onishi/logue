@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetrics } from "../../hooks/useMetrics";
-import { shiftDate } from "../../lib/date";
+import { shiftDate, todayDateString } from "../../lib/date";
 import { MetricValueInput } from "./MetricValueInput";
 
 const MAX_RANGE_DAYS = 90;
-
-function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // from〜to（両端含む、降順=直近日から）の日付一覧を返す。from > to の場合は空配列。
 function buildDateRange(from: string, to: string): string[] {
