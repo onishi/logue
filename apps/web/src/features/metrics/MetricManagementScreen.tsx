@@ -1,6 +1,7 @@
 import type { CreateMetricInput, Metric, MetricGroup, MetricType } from "@logue/shared";
 import { useState } from "react";
 import { Icon } from "../../components/Icon";
+import { useDragReorder } from "../../hooks/useDragReorder";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
 
@@ -64,6 +65,8 @@ function GroupRow({
   onMoveDown,
   onRename,
   onDelete,
+  isDragging,
+  dragHandleProps,
 }: {
   group: MetricGroup;
   canMoveUp: boolean;
@@ -72,13 +75,15 @@ function GroupRow({
   onMoveDown: () => void;
   onRename: (name: string) => Promise<void>;
   onDelete: () => void;
+  isDragging: boolean;
+  dragHandleProps: { onPointerDown: (e: React.PointerEvent) => void };
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(group.name);
 
   if (editing) {
     return (
-      <li>
+      <li data-drag-id={group.id}>
         <div className="row-header">
           <input
             aria-label={`${group.name} の新しい名前`}
@@ -123,8 +128,16 @@ function GroupRow({
   }
 
   return (
-    <li>
+    <li data-drag-id={group.id} className={isDragging ? "dragging" : undefined}>
       <div className="row-header">
+        <button
+          type="button"
+          className="icon-button drag-handle"
+          aria-label={`${group.name} をドラッグして並び替え`}
+          {...dragHandleProps}
+        >
+          <Icon name="drag_indicator" />
+        </button>
         <span className="row-summary">{group.name}</span>
         <div className="row-actions">
           <button
@@ -173,19 +186,23 @@ function GroupManager({
   reorder: ReturnType<typeof useMetricGroups>["reorder"];
 }) {
   const [newGroupName, setNewGroupName] = useState("");
+  const { displayItems, draggingId, dragHandleProps } = useDragReorder(
+    groups,
+    (orderedIds) => void reorder(orderedIds),
+  );
 
   return (
     <section>
       <h2>記録項目グループ</h2>
       <ul>
-        {groups.map((group, index) => (
+        {displayItems.map((group, index) => (
           <GroupRow
             key={group.id}
             group={group}
             canMoveUp={index > 0}
-            canMoveDown={index < groups.length - 1}
-            onMoveUp={() => void reorder(moveItem(groups, index, -1).map((g) => g.id))}
-            onMoveDown={() => void reorder(moveItem(groups, index, 1).map((g) => g.id))}
+            canMoveDown={index < displayItems.length - 1}
+            onMoveUp={() => void reorder(moveItem(displayItems, index, -1).map((g) => g.id))}
+            onMoveDown={() => void reorder(moveItem(displayItems, index, 1).map((g) => g.id))}
             onRename={async (name) => {
               if (name.trim()) await update(group.id, { name: name.trim() });
             }}
@@ -193,6 +210,8 @@ function GroupManager({
               if (window.confirm(`グループ「${group.name}」を削除しますか？`))
                 void remove(group.id);
             }}
+            isDragging={draggingId === group.id}
+            dragHandleProps={dragHandleProps(group.id)}
           />
         ))}
       </ul>
@@ -344,6 +363,8 @@ function MetricRow({
   onSaveChoiceOptions,
   onToggleArchive,
   onDelete,
+  isDragging,
+  dragHandleProps,
 }: {
   metric: Metric;
   groups: MetricGroup[];
@@ -359,12 +380,22 @@ function MetricRow({
   onSaveChoiceOptions: (labels: string[]) => Promise<void>;
   onToggleArchive: () => void;
   onDelete: () => void;
+  isDragging: boolean;
+  dragHandleProps: { onPointerDown: (e: React.PointerEvent) => void };
 }) {
   const [editing, setEditing] = useState(false);
 
   return (
-    <li>
+    <li data-drag-id={metric.id} className={isDragging ? "dragging" : undefined}>
       <div className="row-header">
+        <button
+          type="button"
+          className="icon-button drag-handle"
+          aria-label={`${metric.name} をドラッグして並び替え`}
+          {...dragHandleProps}
+        >
+          <Icon name="drag_indicator" />
+        </button>
         <div className="row-summary">
           <strong>{metric.name}</strong> ({METRIC_TYPE_LABELS[metric.type]}
           {metric.unit ? ` / ${metric.unit}` : ""}) -{" "}
@@ -531,20 +562,24 @@ function NewMetricForm({
 
 function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: MetricGroup[] }) {
   const { metrics, create, update, remove, reorder } = useMetrics(apiBaseUrl);
+  const { displayItems, draggingId, dragHandleProps } = useDragReorder(
+    metrics,
+    (orderedIds) => void reorder(orderedIds),
+  );
 
   return (
     <section>
       <h2>記録項目</h2>
       <ul>
-        {metrics.map((metric, index) => (
+        {displayItems.map((metric, index) => (
           <MetricRow
             key={metric.id}
             metric={metric}
             groups={groups}
             canMoveUp={index > 0}
-            canMoveDown={index < metrics.length - 1}
-            onMoveUp={() => void reorder(moveItem(metrics, index, -1).map((m) => m.id))}
-            onMoveDown={() => void reorder(moveItem(metrics, index, 1).map((m) => m.id))}
+            canMoveDown={index < displayItems.length - 1}
+            onMoveUp={() => void reorder(moveItem(displayItems, index, -1).map((m) => m.id))}
+            onMoveDown={() => void reorder(moveItem(displayItems, index, 1).map((m) => m.id))}
             onSaveGeneral={(input) => update(metric.id, input).then(() => undefined)}
             onSaveChoiceOptions={(labels) =>
               update(metric.id, { choiceOptions: labels.map((label) => ({ label })) }).then(
@@ -556,6 +591,8 @@ function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: Met
               if (window.confirm(`記録項目「${metric.name}」を削除しますか？`))
                 void remove(metric.id);
             }}
+            isDragging={draggingId === metric.id}
+            dragHandleProps={dragHandleProps(metric.id)}
           />
         ))}
       </ul>

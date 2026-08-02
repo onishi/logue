@@ -641,13 +641,13 @@ p {
 .row-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   flex: 1 1 100%;
   min-width: 0;
 }
 
 .row-summary {
+  flex: 1;
   min-width: 0;
 }
 
@@ -661,6 +661,20 @@ p {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  margin-left: auto;
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.screen li.dragging {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+  opacity: 0.85;
 }
 
 .edit-section {
