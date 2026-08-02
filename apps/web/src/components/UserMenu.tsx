@@ -39,7 +39,15 @@ export function UserMenu({
   };
 
   return (
-    <div className="user-menu" ref={containerRef}>
+    <div
+      className="user-menu"
+      ref={containerRef}
+      onBlur={(e) => {
+        // メニュー外にフォーカスが移ったら閉じる（Tabで最後の項目を抜けた場合など）。
+        // 閉じないと、背後の画面内容がドロップダウンに視覚的に隠れたままフォーカス可能になってしまう。
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+    >
       <button
         type="button"
         className="user-menu-trigger"
