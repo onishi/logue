@@ -18,9 +18,11 @@ function formatValue(metric: Metric | undefined, value: string): string {
 export function EntryListScreen({
   apiBaseUrl,
   onEditDate,
+  onOpenBulk,
 }: {
   apiBaseUrl: string;
   onEditDate: (date: string) => void;
+  onOpenBulk: () => void;
 }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
@@ -67,6 +69,9 @@ export function EntryListScreen({
   return (
     <div className="screen">
       <h2>記録一覧</h2>
+      <button type="button" onClick={onOpenBulk}>
+        過去データを一括入力
+      </button>
       <label>
         グループで絞り込み
         <select

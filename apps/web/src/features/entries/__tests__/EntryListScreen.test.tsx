@@ -51,7 +51,9 @@ describe("EntryListScreen", () => {
   });
 
   it("shows a pivot table with dates as rows and metrics as columns", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
 
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
@@ -69,7 +71,9 @@ describe("EntryListScreen", () => {
   });
 
   it("filters columns by group", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
     );
@@ -84,7 +88,9 @@ describe("EntryListScreen", () => {
 
   it("calls onEditDate with the row's date when its edit button is clicked", async () => {
     const onEditDate = jest.fn();
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={onEditDate} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={onEditDate} onOpenBulk={jest.fn()} />,
+    );
     await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "2026-07-01を編集" }));
@@ -92,5 +98,16 @@ describe("EntryListScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "2026-07-02を編集" }));
     expect(onEditDate).toHaveBeenCalledWith("2026-07-02");
+  });
+
+  it("calls onOpenBulk when the bulk-entry button is clicked", async () => {
+    const onOpenBulk = jest.fn();
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={onOpenBulk} />,
+    );
+    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "過去データを一括入力" }));
+    expect(onOpenBulk).toHaveBeenCalledTimes(1);
   });
 });
