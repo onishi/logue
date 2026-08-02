@@ -143,18 +143,27 @@ metric として作成する想定。
 
 ## Phase 7: データ入出力・外部連携
 
-- [ ] 過去データの一括入力
+- [x] 過去データの一括入力
   - [x] 日付を指定して複数日分をまとめて入力できるフォーム（`apps/web/src/features/entries/BulkEntryScreen.tsx`。
         記録項目を1つ選び、開始日〜終了日の範囲を指定すると日付ごとの入力欄が並び、まとめて保存できる。
         記録一覧画面の「過去データを一括入力」から遷移）
   - [x] CSV エクスポート（記録一覧画面の「CSVでダウンロード」。現在表示中のピボットテーブル
         （日付×記録項目、グループ・記録項目での絞り込みを反映）をそのままCSVとして書き出す。
         Excel等での文字化けを避けるため UTF-8 BOM 付き。`apps/web/src/lib/csv.ts`）
-  - [ ] CSV インポート UI（未着手）
+  - [x] CSV インポート UI（記録一覧画面の「CSVから読み込む」でファイルを選択すると、
+        件数と検証結果（ヘッダーが記録項目に一致しない列・日付形式不正・選択肢不一致・数値不正
+        などの警告）をプレビュー表示し、「インポートする」で確定する。エクスポート時と同じ
+        列ヘッダー形式（`日付,項目名（単位）,...`）を読み取るため、エクスポートしたCSVを編集して
+        再インポートする運用が可能。空欄セルは未入力として読み飛ばすのみで、既存レコードの削除は
+        行わない（一部の列・行だけ埋めたCSVを安全に再インポートできるようにするため）。
+        `apps/web/src/lib/csv.ts`（`parseCsv`）, `apps/web/src/lib/csvImport.ts`（`parseEntriesCsv`））
   - [x] 重複日時・不正値のバリデーション（同一項目・同一日は既存レコードの upsert になるため
         重複作成はそもそも発生しない構造。開始日 > 終了日、一度に入力できる日数の上限（90日）を
-        フォーム側でチェック。値の妥当性は既存の API 側バリデーションを踏襲）
-  - [x] 単体テスト（`apps/web/src/features/entries/__tests__/BulkEntryScreen.test.tsx`）
+        フォーム側でチェック。値の妥当性は既存の API 側バリデーションを踏襲。CSVインポートは
+        日付形式・選択肢・数値の妥当性を行ごとにチェックし、不正な行のみスキップする）
+  - [x] 単体テスト（`apps/web/src/features/entries/__tests__/BulkEntryScreen.test.tsx`,
+        `apps/web/src/lib/__tests__/csv.test.ts`, `apps/web/src/lib/__tests__/csvImport.test.ts`,
+        `apps/web/src/features/entries/__tests__/EntryListScreen.test.tsx`）
 - [ ] Google スプレッドシート連携
   - [ ] Google Sheets API 用の追加 OAuth スコープ取得・同意フロー対応
   - [ ] エクスポート: entries データを指定のスプレッドシートに書き出し（バックアップ・自分での分析用）

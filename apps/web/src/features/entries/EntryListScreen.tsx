@@ -3,12 +3,11 @@ import { useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
-import { downloadCsv, toCsv } from "../../lib/csv";
+import { downloadCsv, metricColumnLabel, toCsv } from "../../lib/csv";
+import { type CsvImportResult, parseEntriesCsv } from "../../lib/csvImport";
 import { todayDateString } from "../../lib/date";
 
-function metricColumnLabel(metric: Metric): string {
-  return `${metric.name}${metric.unit ? `（${metric.unit}）` : ""}${metric.isArchived ? " [アーカイブ済み]" : ""}`;
-}
+const MAX_VISIBLE_ISSUES = 20;
 
 function formatValue(metric: Metric | undefined, value: string): string {
   if (!metric) return value;
@@ -32,10 +31,13 @@ export function EntryListScreen({
 }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
-  const { entries } = useEntries(apiBaseUrl);
+  const { entries, create } = useEntries(apiBaseUrl);
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
+  const [importPreview, setImportPreview] = useState<CsvImportResult | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   const metricsInGroup = groupFilter
     ? metrics.filter((m) => m.metricGroupId === groupFilter)
@@ -86,12 +88,76 @@ export function EntryListScreen({
     return [header, ...body];
   }, [metricColumns, dates, entryByDateAndMetric]);
 
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      setImportPreview(parseEntriesCsv(text, metrics));
+      setImportMessage(null);
+    };
+    reader.readAsText(file);
+  };
+
+  const confirmImport = async () => {
+    if (!importPreview || importPreview.rows.length === 0) return;
+    setImporting(true);
+    try {
+      await Promise.all(importPreview.rows.map((row) => create(row)));
+      setImportMessage(`${importPreview.rows.length}件を読み込みました`);
+      setImportPreview(null);
+    } catch {
+      setImportMessage("読み込みに失敗しました");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="screen">
       <h2>記録一覧</h2>
       <button type="button" onClick={onOpenBulk}>
         過去データを一括入力
       </button>
+      <label>
+        CSVから読み込む
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          aria-label="CSVから読み込む"
+          onChange={handleCsvFileChange}
+        />
+      </label>
+
+      {importPreview && (
+        <div role="status" className="import-preview">
+          <p>{importPreview.rows.length}件を読み込みます。</p>
+          {importPreview.issues.length > 0 && (
+            <ul>
+              {importPreview.issues.slice(0, MAX_VISIBLE_ISSUES).map((issue, index) => (
+                <li key={index}>{issue}</li>
+              ))}
+              {importPreview.issues.length > MAX_VISIBLE_ISSUES && (
+                <li>ほか{importPreview.issues.length - MAX_VISIBLE_ISSUES}件</li>
+              )}
+            </ul>
+          )}
+          <button
+            type="button"
+            onClick={() => void confirmImport()}
+            disabled={importing || importPreview.rows.length === 0}
+          >
+            インポートする
+          </button>
+          <button type="button" onClick={() => setImportPreview(null)} disabled={importing}>
+            キャンセル
+          </button>
+        </div>
+      )}
+      {importMessage && <p role="status">{importMessage}</p>}
+
       <label>
         グループで絞り込み
         <select

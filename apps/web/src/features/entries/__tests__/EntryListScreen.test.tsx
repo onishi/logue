@@ -155,4 +155,49 @@ describe("EntryListScreen", () => {
     delete URL.revokeObjectURL;
     clickSpy.mockRestore();
   });
+
+  it("previews a selected CSV file and imports it after confirmation", async () => {
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
+    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+    const csv = ["日付,体重（kg）,体調", "2026-07-03,72,良い"].join("\r\n");
+    const file = new File([csv], "entries.csv", { type: "text/csv" });
+    const input = screen.getByLabelText("CSVから読み込む");
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => expect(screen.getByText("2件を読み込みます。")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "インポートする" }));
+
+    await waitFor(() => expect(screen.getByText("2件を読み込みました")).toBeInTheDocument());
+    expect(server.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ metricId: "m1", recordedAt: "2026-07-03", value: "72" }),
+        expect.objectContaining({ metricId: "m2", recordedAt: "2026-07-03", value: "o1" }),
+      ]),
+    );
+  });
+
+  it("shows import issues and lets the user cancel without importing", async () => {
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
+    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+    const csv = ["日付,体重（kg）", "2026-07-03,abc"].join("\r\n");
+    const file = new File([csv], "entries.csv", { type: "text/csv" });
+    const input = screen.getByLabelText("CSVから読み込む");
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect(screen.getByText("2行目「体重（kg）」: 数値「abc」が不正です。")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("0件を読み込みます。")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
+    expect(screen.queryByText("0件を読み込みます。")).not.toBeInTheDocument();
+    expect(server.entries).toHaveLength(2);
+  });
 });
