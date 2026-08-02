@@ -79,67 +79,82 @@ function GroupRow({
   if (editing) {
     return (
       <li>
-        <input
-          aria-label={`${group.name} の新しい名前`}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button
-          type="button"
-          aria-label={`${group.name} の変更を保存`}
-          onClick={async () => {
-            await onRename(name);
-            setEditing(false);
-          }}
-        >
-          保存
-        </button>
-        <button
-          type="button"
-          aria-label={`${group.name} の編集をキャンセル`}
-          onClick={() => {
-            setName(group.name);
-            setEditing(false);
-          }}
-        >
-          キャンセル
-        </button>
-        <button
-          type="button"
-          className="button-danger"
-          onClick={onDelete}
-          aria-label={`${group.name} を削除`}
-        >
-          削除
-        </button>
+        <div className="row-header">
+          <input
+            aria-label={`${group.name} の新しい名前`}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div className="panel-actions">
+          <button
+            type="button"
+            className="icon-button button-danger"
+            onClick={onDelete}
+            aria-label={`${group.name} を削除`}
+          >
+            <Icon name="delete" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={`${group.name} の編集をキャンセル`}
+            onClick={() => {
+              setName(group.name);
+              setEditing(false);
+            }}
+          >
+            <Icon name="close" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={`${group.name} の変更を保存`}
+            onClick={async () => {
+              await onRename(name);
+              setEditing(false);
+            }}
+          >
+            <Icon name="check" />
+          </button>
+        </div>
       </li>
     );
   }
 
   return (
     <li>
-      <span>{group.name}</span>
-      <button
-        type="button"
-        className="icon-button"
-        onClick={onMoveUp}
-        disabled={!canMoveUp}
-        aria-label={`${group.name} を上に移動`}
-      >
-        <Icon name="arrow_upward" />
-      </button>
-      <button
-        type="button"
-        className="icon-button"
-        onClick={onMoveDown}
-        disabled={!canMoveDown}
-        aria-label={`${group.name} を下に移動`}
-      >
-        <Icon name="arrow_downward" />
-      </button>
-      <button type="button" onClick={() => setEditing(true)} aria-label={`${group.name} を編集`}>
-        編集
-      </button>
+      <div className="row-header">
+        <span className="row-summary">{group.name}</span>
+        <div className="row-actions">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            aria-label={`${group.name} を上に移動`}
+          >
+            <Icon name="arrow_upward" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            aria-label={`${group.name} を下に移動`}
+          >
+            <Icon name="arrow_downward" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setEditing(true)}
+            aria-label={`${group.name} を編集`}
+          >
+            <Icon name="edit_square" />
+          </button>
+        </div>
+      </div>
     </li>
   );
 }
@@ -225,7 +240,7 @@ function MetricGeneralFields({
   const [metricGroupId, setMetricGroupId] = useState(metric.metricGroupId ?? "");
 
   return (
-    <div>
+    <div className="edit-section">
       <label>
         名前
         <input
@@ -259,23 +274,31 @@ function MetricGeneralFields({
           ))}
         </select>
       </label>
-      <button
-        type="button"
-        aria-label={`${metric.name} の変更を保存`}
-        onClick={async () => {
-          if (!name.trim()) return;
-          await onSave({
-            name: name.trim(),
-            unit: unit.trim() || null,
-            metricGroupId: metricGroupId || null,
-          });
-        }}
-      >
-        保存
-      </button>
-      <button type="button" onClick={onCancel} aria-label={`${metric.name} の編集をキャンセル`}>
-        キャンセル
-      </button>
+      <div className="panel-actions">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onCancel}
+          aria-label={`${metric.name} の編集をキャンセル`}
+        >
+          <Icon name="close" />
+        </button>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label={`${metric.name} の変更を保存`}
+          onClick={async () => {
+            if (!name.trim()) return;
+            await onSave({
+              name: name.trim(),
+              unit: unit.trim() || null,
+              metricGroupId: metricGroupId || null,
+            });
+          }}
+        >
+          <Icon name="check" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -290,19 +313,22 @@ function MetricChoiceOptionsEditor({
   const [labels, setLabels] = useState(metric.choiceOptions.map((o) => o.label));
 
   return (
-    <div>
+    <div className="edit-section">
       <p>選択肢</p>
       <LabelListEditor labels={labels} onChange={setLabels} />
-      <button
-        type="button"
-        aria-label={`${metric.name} の選択肢を保存`}
-        onClick={() => {
-          const cleaned = labels.map((l) => l.trim()).filter((l) => l.length > 0);
-          if (cleaned.length > 0) void onSave(cleaned);
-        }}
-      >
-        選択肢を保存
-      </button>
+      <div className="panel-actions">
+        <button
+          type="button"
+          className="icon-button"
+          aria-label={`${metric.name} の選択肢を保存`}
+          onClick={() => {
+            const cleaned = labels.map((l) => l.trim()).filter((l) => l.length > 0);
+            if (cleaned.length > 0) void onSave(cleaned);
+          }}
+        >
+          <Icon name="check" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -338,36 +364,42 @@ function MetricRow({
 
   return (
     <li>
-      <div>
-        <strong>{metric.name}</strong> ({METRIC_TYPE_LABELS[metric.type]}
-        {metric.unit ? ` / ${metric.unit}` : ""}) - {metricGroupLabel(groups, metric.metricGroupId)}
-        {metric.isArchived && " [アーカイブ済み]"}
+      <div className="row-header">
+        <div className="row-summary">
+          <strong>{metric.name}</strong> ({METRIC_TYPE_LABELS[metric.type]}
+          {metric.unit ? ` / ${metric.unit}` : ""}) -{" "}
+          {metricGroupLabel(groups, metric.metricGroupId)}
+          {metric.isArchived && " [アーカイブ済み]"}
+        </div>
+        <div className="row-actions">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            aria-label={`${metric.name} を上に移動`}
+          >
+            <Icon name="arrow_upward" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            aria-label={`${metric.name} を下に移動`}
+          >
+            <Icon name="arrow_downward" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setEditing((v) => !v)}
+            aria-label={editing ? `${metric.name} の編集を閉じる` : `${metric.name} を編集`}
+          >
+            <Icon name={editing ? "close" : "edit_square"} />
+          </button>
+        </div>
       </div>
-      <button
-        type="button"
-        className="icon-button"
-        onClick={onMoveUp}
-        disabled={!canMoveUp}
-        aria-label={`${metric.name} を上に移動`}
-      >
-        <Icon name="arrow_upward" />
-      </button>
-      <button
-        type="button"
-        className="icon-button"
-        onClick={onMoveDown}
-        disabled={!canMoveDown}
-        aria-label={`${metric.name} を下に移動`}
-      >
-        <Icon name="arrow_downward" />
-      </button>
-      <button
-        type="button"
-        onClick={() => setEditing((v) => !v)}
-        aria-label={editing ? `${metric.name} の編集を閉じる` : `${metric.name} を編集`}
-      >
-        {editing ? "閉じる" : "編集"}
-      </button>
       {editing && (
         <>
           <MetricGeneralFields
@@ -385,6 +417,7 @@ function MetricRow({
           <div className="danger-zone">
             <button
               type="button"
+              className="icon-button"
               onClick={onToggleArchive}
               aria-label={
                 metric.isArchived
@@ -392,15 +425,15 @@ function MetricRow({
                   : `${metric.name} をアーカイブする`
               }
             >
-              {metric.isArchived ? "再表示する" : "アーカイブする"}
+              <Icon name={metric.isArchived ? "unarchive" : "archive"} />
             </button>
             <button
               type="button"
-              className="button-danger"
+              className="icon-button button-danger"
               onClick={onDelete}
               aria-label={`${metric.name} を削除`}
             >
-              削除
+              <Icon name="delete" />
             </button>
           </div>
         </>
