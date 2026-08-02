@@ -1,4 +1,4 @@
-import { randomToken, sha256Base64Url } from "../crypto";
+import { decryptSecret, encryptSecret, randomToken, sha256Base64Url } from "../crypto";
 
 describe("randomToken", () => {
   it("generates URL-safe tokens that differ between calls", () => {
@@ -20,5 +20,32 @@ describe("sha256Base64Url", () => {
     const a = await sha256Base64Url("logue-1");
     const b = await sha256Base64Url("logue-2");
     expect(a).not.toBe(b);
+  });
+});
+
+describe("encryptSecret / decryptSecret", () => {
+  const secret = "test-session-secret";
+
+  it("round-trips a plaintext value", async () => {
+    const encrypted = await encryptSecret("my-refresh-token", secret);
+    const decrypted = await decryptSecret(encrypted, secret);
+    expect(decrypted).toBe("my-refresh-token");
+  });
+
+  it("produces different ciphertext for the same plaintext (random IV)", async () => {
+    const a = await encryptSecret("same-value", secret);
+    const b = await encryptSecret("same-value", secret);
+    expect(a).not.toBe(b);
+  });
+
+  it("fails to decrypt with the wrong session secret", async () => {
+    const encrypted = await encryptSecret("my-refresh-token", secret);
+    await expect(decryptSecret(encrypted, "different-secret")).rejects.toThrow();
+  });
+
+  it("rejects a malformed encrypted value", async () => {
+    await expect(decryptSecret("not-a-valid-payload", secret)).rejects.toThrow(
+      "不正な暗号化データ形式です",
+    );
   });
 });

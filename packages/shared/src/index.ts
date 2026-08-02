@@ -41,3 +41,6 @@ export {
   userSettingsSchema,
   updateUserSettingsInputSchema,
 } from "./types/userSettings";
+
+export type { GridParseResult } from "./sheetGrid";
+export { metricColumnLabel, buildGridRows, parseGridRows } from "./sheetGrid";

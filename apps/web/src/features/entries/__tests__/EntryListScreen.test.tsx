@@ -144,9 +144,9 @@ describe("EntryListScreen", () => {
       reader.onerror = () => reject(reader.error);
       reader.readAsText(blob);
     });
-    expect(text).toBe(
-      ["日付,体重（kg）,体調", "2026-07-02,,良い", "2026-07-01,70 kg,"].join("\r\n"),
-    );
+    // 数値項目はCSV上では単位を付けない生の値で書き出す（再インポート時に数値として
+    // 読み戻せるようにするため。画面上の表示は formatValue により "70 kg" のまま）。
+    expect(text).toBe(["日付,体重（kg）,体調", "2026-07-02,,良い", "2026-07-01,70,"].join("\r\n"));
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock");
 
     // @ts-expect-error テスト用のスタブを後片付けする

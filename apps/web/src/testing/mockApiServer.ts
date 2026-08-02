@@ -24,6 +24,21 @@ export function createMockApiServer(baseUrl: string) {
   const metrics: Metric[] = [];
   const entries: Entry[] = [];
   const userSettings: UserSettings = { theme: "system" };
+  const sheetsConnection: {
+    connected: boolean;
+    spreadsheetId: string | null;
+    sheetName: string;
+    syncEnabled: boolean;
+    lastSyncedAt: string | null;
+    lastError: string | null;
+  } = {
+    connected: false,
+    spreadsheetId: null,
+    sheetName: "logue",
+    syncEnabled: false,
+    lastSyncedAt: null,
+    lastError: null,
+  };
 
   function json(body: unknown, status = 200): MockResponse {
     return { ok: status < 400, status, json: async () => body };
@@ -185,6 +200,36 @@ export function createMockApiServer(baseUrl: string) {
       return json(userSettings);
     }
 
+    if (path === "/api/sheets" && method === "GET") {
+      return json(sheetsConnection.connected ? { ...sheetsConnection } : { connected: false });
+    }
+    if (path === "/api/sheets" && method === "PATCH") {
+      sheetsConnection.connected = true;
+      if (typeof body?.spreadsheetId === "string")
+        sheetsConnection.spreadsheetId = body.spreadsheetId;
+      if (typeof body?.sheetName === "string") sheetsConnection.sheetName = body.sheetName;
+      if (typeof body?.syncEnabled === "boolean") sheetsConnection.syncEnabled = body.syncEnabled;
+      return json({ ...sheetsConnection });
+    }
+    if (path === "/api/sheets/sync" && method === "POST") {
+      sheetsConnection.lastSyncedAt = new Date().toISOString();
+      return json({
+        ok: true,
+        issues: [],
+        lastSyncedAt: sheetsConnection.lastSyncedAt,
+        lastError: sheetsConnection.lastError,
+      });
+    }
+    if (path === "/api/sheets" && method === "DELETE") {
+      sheetsConnection.connected = false;
+      sheetsConnection.spreadsheetId = null;
+      sheetsConnection.sheetName = "logue";
+      sheetsConnection.syncEnabled = false;
+      sheetsConnection.lastSyncedAt = null;
+      sheetsConnection.lastError = null;
+      return noContent();
+    }
+
     throw new Error(`mockApiServer: unhandled request ${method} ${path}`);
   }
 
@@ -192,5 +237,5 @@ export function createMockApiServer(baseUrl: string) {
     handle(typeof input === "string" ? input : input.toString(), init),
   ) as unknown as typeof fetch;
 
-  return { fetchMock, groups, metrics, entries, userSettings, baseUrl };
+  return { fetchMock, groups, metrics, entries, userSettings, sheetsConnection, baseUrl };
 }

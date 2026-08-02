@@ -1,4 +1,5 @@
 import type { Entry, Metric } from "@logue/shared";
+import { buildGridRows } from "@logue/shared";
 import { useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
@@ -76,17 +77,9 @@ export function EntryListScreen({
 
   const hasData = metricColumns.length > 0 && dates.length > 0;
 
-  const csvRows = useMemo(() => {
-    const header = ["日付", ...metricColumns.map(metricColumnLabel)];
-    const body = dates.map((date) => [
-      date,
-      ...metricColumns.map((metric) => {
-        const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
-        return entry ? formatValue(metric, entry.value) : "";
-      }),
-    ]);
-    return [header, ...body];
-  }, [metricColumns, dates, entryByDateAndMetric]);
+  // 画面表示用の formatValue とは異なり、数値項目には単位を付けない（再インポート時に
+  // 数値として読み戻せるようにするため。単位は列ヘッダー側にのみ表示される）。
+  const csvRows = useMemo(() => buildGridRows(metricColumns, entries), [metricColumns, entries]);
 
   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

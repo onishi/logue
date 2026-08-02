@@ -164,12 +164,31 @@ metric として作成する想定。
   - [x] 単体テスト（`apps/web/src/features/entries/__tests__/BulkEntryScreen.test.tsx`,
         `apps/web/src/lib/__tests__/csv.test.ts`, `apps/web/src/lib/__tests__/csvImport.test.ts`,
         `apps/web/src/features/entries/__tests__/EntryListScreen.test.tsx`）
-- [ ] Google スプレッドシート連携
-  - [ ] Google Sheets API 用の追加 OAuth スコープ取得・同意フロー対応
-  - [ ] エクスポート: entries データを指定のスプレッドシートに書き出し（バックアップ・自分での分析用）
-  - [ ] インポート: 既にスプレッドシートで記録しているデータを読み込んで entries に取り込み
-  - [ ] 連携設定 UI（対象シート選択、同期方向・タイミングの設定）
-  - [ ] 単体テスト
+- [x] Google スプレッドシート連携（スプレッドシートをマスターデータとして扱いつつ、
+      アプリからの直接入力とも双方向に同期する。同一セルが両側で食い違って変更されていた
+      場合はスプレッドシート側を優先する3-wayマージ。1時間ごとに自動同期、設定画面から
+      手動同期も可能）
+  - [x] Google Sheets API 用の追加 OAuth スコープ取得・同意フロー対応（既存のログイン用
+        OAuthフローとは別に `/api/sheets/connect` 以下で spreadsheets スコープ・オフライン
+        アクセスを要求する独立したフローを新設。取得した refresh token は SESSION_SECRET
+        から導出した鍵で AES-GCM 暗号化して `google_sheets_connections` テーブルに保存）
+  - [x] エクスポート・インポート（同期エンジン `apps/api/src/googleSheets/sync.ts`。
+        前回同期時点のスナップショットとの差分でアプリ側/シート側どちらが変更したかを
+        判定する3-wayマージ `merge.ts` を用いて、セル単位で entries への反映とシートへの
+        書き込みを行う。CSV機能と共通のグリッド構築・解析ロジック
+        `packages/shared/src/sheetGrid.ts` を利用）
+  - [x] 連携設定 UI（設定画面の「Googleスプレッドシート連携」。スプレッドシートURL/ID・
+        シート名の設定、自動同期の有効/無効切り替え、「今すぐ同期」による手動同期、
+        最終同期日時・エラー表示、連携解除。`apps/web/src/features/settings/SettingsScreen.tsx`）
+  - [x] 同期タイミング設定（Cloudflare Cron Trigger で1時間ごとに自動同期。
+        `apps/api/wrangler.toml` の `[triggers]`、`apps/api/src/index.ts` の `scheduled`）
+  - [x] 単体テスト（`apps/api/src/googleSheets/__tests__/`（merge/sheetsApi/sync/routes）、
+        `apps/api/src/__tests__/crypto.test.ts`、`apps/api/src/auth/__tests__/google.test.ts`、
+        `packages/shared/src/__tests__/sheetGrid.test.ts`、
+        `apps/web/src/features/settings/__tests__/SettingsScreen.test.tsx`）
+  - 利用前にユーザー側で Google Cloud Console にて (1) Google Sheets API の有効化、
+    (2) OAuth 同意画面へのスコープ `https://www.googleapis.com/auth/spreadsheets` の追加が必要
+    （暗号化鍵は既存の SESSION_SECRET から導出するため、新しい環境変数の追加は不要）
 
 ## Phase 8: テスト・品質保証・本番リリース
 

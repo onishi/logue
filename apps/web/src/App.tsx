@@ -103,7 +103,11 @@ function AuthenticatedApp({
         {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "settings" && (
-          <SettingsScreen theme={settings.theme} onChangeTheme={(t) => void setTheme(t)} />
+          <SettingsScreen
+            apiBaseUrl={apiBaseUrl}
+            theme={settings.theme}
+            onChangeTheme={(t) => void setTheme(t)}
+          />
         )}
       </div>
 
