@@ -51,6 +51,46 @@ describe("UserMenu", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
+  it("closes the menu when focus moves outside of it (e.g. tabbing past the last item)", () => {
+    render(
+      <div>
+        <UserMenu
+          user={user}
+          onOpenMetrics={jest.fn()}
+          onOpenSettings={jest.fn()}
+          onLogout={jest.fn()}
+        />
+        <button type="button">外側</button>
+      </div>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "太郎 のメニュー" }));
+    const logoutItem = screen.getByRole("menuitem", { name: "ログアウト" });
+    fireEvent.focusOut(logoutItem, {
+      relatedTarget: screen.getByRole("button", { name: "外側" }),
+    });
+
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("keeps the menu open when focus moves between items inside it", () => {
+    render(
+      <UserMenu
+        user={user}
+        onOpenMetrics={jest.fn()}
+        onOpenSettings={jest.fn()}
+        onLogout={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "太郎 のメニュー" }));
+    const metricsItem = screen.getByRole("menuitem", { name: "項目管理" });
+    const settingsItem = screen.getByRole("menuitem", { name: "設定" });
+    fireEvent.focusOut(metricsItem, { relatedTarget: settingsItem });
+
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+  });
+
   it("falls back to a person icon when the user has no picture", () => {
     render(
       <UserMenu
