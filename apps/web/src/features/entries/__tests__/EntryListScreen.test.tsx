@@ -51,7 +51,9 @@ describe("EntryListScreen", () => {
   });
 
   it("shows a pivot table with dates as rows and metrics as columns", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
 
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
@@ -69,7 +71,9 @@ describe("EntryListScreen", () => {
   });
 
   it("filters columns by group", async () => {
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
     await waitFor(() =>
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
     );
@@ -84,7 +88,9 @@ describe("EntryListScreen", () => {
 
   it("calls onEditDate with the row's date when its edit button is clicked", async () => {
     const onEditDate = jest.fn();
-    render(<EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={onEditDate} />);
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={onEditDate} onOpenBulk={jest.fn()} />,
+    );
     await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "2026-07-01を編集" }));
@@ -92,5 +98,61 @@ describe("EntryListScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "2026-07-02を編集" }));
     expect(onEditDate).toHaveBeenCalledWith("2026-07-02");
+  });
+
+  it("calls onOpenBulk when the bulk-entry button is clicked", async () => {
+    const onOpenBulk = jest.fn();
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={onOpenBulk} />,
+    );
+    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "過去データを一括入力" }));
+    expect(onOpenBulk).toHaveBeenCalledTimes(1);
+  });
+
+  it("downloads a CSV of the currently displayed pivot table", async () => {
+    let capturedBlob: Blob | undefined;
+    const createObjectURL = jest.fn((blob: Blob) => {
+      capturedBlob = blob;
+      return "blob:mock";
+    });
+    const revokeObjectURL = jest.fn();
+    // jsdom は URL.createObjectURL/revokeObjectURL を実装していないためスタブする
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+    // jsdom は <a download> によるダウンロードを認識せず、click() を素朴なページ遷移として
+    // 扱おうとしてしまうため（"Not implemented: navigation" 警告の原因）、click 自体はスタブする
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
+    await waitFor(() => expect(screen.getByText("70 kg")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "CSVでダウンロード" }));
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = capturedBlob!;
+    expect(blob.type).toBe("text/csv;charset=utf-8;");
+    // jsdom の Blob は text() を実装していないため FileReader で読み出す。
+    // readAsText は先頭の UTF-8 BOM をエンコーディング指示として解釈して取り除くため
+    // （実ブラウザでも同様の挙動）、読み出し結果には BOM は含まれない。
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(blob);
+    });
+    expect(text).toBe(
+      ["日付,体重（kg）,体調", "2026-07-02,,良い", "2026-07-01,70 kg,"].join("\r\n"),
+    );
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock");
+
+    // @ts-expect-error テスト用のスタブを後片付けする
+    delete URL.createObjectURL;
+    // @ts-expect-error テスト用のスタブを後片付けする
+    delete URL.revokeObjectURL;
+    clickSpy.mockRestore();
   });
 });

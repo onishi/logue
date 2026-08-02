@@ -2,6 +2,7 @@ import type { User } from "@logue/shared";
 import { useEffect, useState } from "react";
 import { Icon } from "./components/Icon";
 import { UserMenu } from "./components/UserMenu";
+import { BulkEntryScreen } from "./features/entries/BulkEntryScreen";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
 import { GraphScreen } from "./features/graphs/GraphScreen";
@@ -91,7 +92,14 @@ function AuthenticatedApp({
             initialDate={entryFormDate}
           />
         )}
-        {activeTab === "list" && <EntryListScreen apiBaseUrl={apiBaseUrl} onEditDate={editDate} />}
+        {activeTab === "list" && (
+          <EntryListScreen
+            apiBaseUrl={apiBaseUrl}
+            onEditDate={editDate}
+            onOpenBulk={() => navigate("bulk")}
+          />
+        )}
+        {activeTab === "bulk" && <BulkEntryScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "settings" && (

@@ -3,6 +3,12 @@ import { useMemo, useState } from "react";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
+import { downloadCsv, toCsv } from "../../lib/csv";
+import { todayDateString } from "../../lib/date";
+
+function metricColumnLabel(metric: Metric): string {
+  return `${metric.name}${metric.unit ? `（${metric.unit}）` : ""}${metric.isArchived ? " [アーカイブ済み]" : ""}`;
+}
 
 function formatValue(metric: Metric | undefined, value: string): string {
   if (!metric) return value;
@@ -18,9 +24,11 @@ function formatValue(metric: Metric | undefined, value: string): string {
 export function EntryListScreen({
   apiBaseUrl,
   onEditDate,
+  onOpenBulk,
 }: {
   apiBaseUrl: string;
   onEditDate: (date: string) => void;
+  onOpenBulk: () => void;
 }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
@@ -64,9 +72,26 @@ export function EntryListScreen({
     return [...unique].sort().reverse();
   }, [entries, columnMetricIds]);
 
+  const hasData = metricColumns.length > 0 && dates.length > 0;
+
+  const csvRows = useMemo(() => {
+    const header = ["日付", ...metricColumns.map(metricColumnLabel)];
+    const body = dates.map((date) => [
+      date,
+      ...metricColumns.map((metric) => {
+        const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
+        return entry ? formatValue(metric, entry.value) : "";
+      }),
+    ]);
+    return [header, ...body];
+  }, [metricColumns, dates, entryByDateAndMetric]);
+
   return (
     <div className="screen">
       <h2>記録一覧</h2>
+      <button type="button" onClick={onOpenBulk}>
+        過去データを一括入力
+      </button>
       <label>
         グループで絞り込み
         <select
@@ -101,48 +126,52 @@ export function EntryListScreen({
         </select>
       </label>
 
-      {metricColumns.length === 0 || dates.length === 0 ? (
+      {!hasData ? (
         <p>記録がありません。</p>
       ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>日付</th>
-                {metricColumns.map((metric) => (
-                  <th key={metric.id}>
-                    {metric.name}
-                    {metric.unit ? `（${metric.unit}）` : ""}
-                    {metric.isArchived && " [アーカイブ済み]"}
-                  </th>
-                ))}
-                <th aria-hidden="true"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {dates.map((date) => (
-                <tr key={date}>
-                  <th scope="row">{date}</th>
-                  {metricColumns.map((metric) => {
-                    const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
-                    return (
-                      <td key={metric.id}>{entry ? formatValue(metric, entry.value) : "—"}</td>
-                    );
-                  })}
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => onEditDate(date)}
-                      aria-label={`${date}を編集`}
-                    >
-                      編集
-                    </button>
-                  </td>
+        <>
+          <button
+            type="button"
+            onClick={() => downloadCsv(toCsv(csvRows), `logue-entries-${todayDateString()}.csv`)}
+          >
+            CSVでダウンロード
+          </button>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>日付</th>
+                  {metricColumns.map((metric) => (
+                    <th key={metric.id}>{metricColumnLabel(metric)}</th>
+                  ))}
+                  <th aria-hidden="true"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {dates.map((date) => (
+                  <tr key={date}>
+                    <th scope="row">{date}</th>
+                    {metricColumns.map((metric) => {
+                      const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
+                      return (
+                        <td key={metric.id}>{entry ? formatValue(metric, entry.value) : "—"}</td>
+                      );
+                    })}
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => onEditDate(date)}
+                        aria-label={`${date}を編集`}
+                      >
+                        編集
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

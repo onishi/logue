@@ -4,12 +4,8 @@ import { Icon } from "../../components/Icon";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
-import { shiftDate } from "../../lib/date";
+import { shiftDate, todayDateString } from "../../lib/date";
 import { MetricValueInput } from "./MetricValueInput";
-
-function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function groupedActiveMetrics(
   metrics: Metric[],
