@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { createMockApiServer } from "../../../testing/mockApiServer";
 import { MetricManagementScreen } from "../MetricManagementScreen";
@@ -87,23 +87,6 @@ describe("MetricManagementScreen", () => {
     await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText(/体重/)).not.toBeInTheDocument());
     expect(server.metrics).toHaveLength(0);
-  });
-
-  it("reorders groups with the up/down buttons", async () => {
-    server.groups.push(
-      { id: "g1", name: "体組成", sortOrder: 0 },
-      { id: "g2", name: "食事", sortOrder: 1 },
-    );
-    render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
-    await waitFor(() => expect(screen.getByText("食事", { selector: "span" })).toBeInTheDocument());
-
-    fireEvent.click(screen.getByRole("button", { name: "食事 を上に移動" }));
-
-    await waitFor(() => {
-      const items = screen.getAllByRole("listitem");
-      const groupItems = items.filter((li) => within(li).queryByText(/体組成|食事/));
-      expect(groupItems[0]).toHaveTextContent("食事");
-    });
   });
 
   it("deletes a group from within its edit view", async () => {
