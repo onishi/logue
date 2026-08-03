@@ -637,22 +637,46 @@ p {
   text-align: right;
 }
 
+/*
+ * 削除ボタンは入力欄の外に並べるのではなく、同じ塗りつぶし枠の中に収める
+ * （Material の「トレーリングアイコン付きフィールド」に寄せた見た目）。
+ * そのためフィールドの背景・下線は個々の input/select ではなくこの行側に持たせる。
+ */
 .entry-input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
   flex: 1;
   min-width: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--field-fill);
+  transition:
+    border-color 0.15s ease,
+    border-bottom-width 0.15s ease;
+}
+
+.entry-input-row:focus-within {
+  border-bottom: 2px solid var(--accent);
 }
 
 .entry-input-row input,
 .entry-input-row select {
   flex: 1;
   min-width: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.entry-input-row input:focus,
+.entry-input-row select:focus {
+  border-bottom: none;
+  padding-bottom: 9px;
 }
 
 .entry-input-row .icon-button {
   flex: 0 0 auto;
+  margin-right: 4px;
 }
 
 .screen ul {
