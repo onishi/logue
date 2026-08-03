@@ -73,9 +73,6 @@ export function EntryListScreen({
   return (
     <div className="screen">
       <h2>記録一覧</h2>
-      <button type="button" onClick={onOpenBulk}>
-        過去データを一括入力
-      </button>
 
       <CollapsibleSection label="絞り込み">
         <label>
@@ -152,6 +149,10 @@ export function EntryListScreen({
           </table>
         </div>
       )}
+
+      <button type="button" onClick={onOpenBulk}>
+        過去データを一括入力
+      </button>
     </div>
   );
 }
