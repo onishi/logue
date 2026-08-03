@@ -1,5 +1,6 @@
 import {
   aggregateByGranularity,
+  computeYAxisDomain,
   mergeSeriesForChart,
   movingAverage,
   seriesColorVar,
@@ -108,6 +109,51 @@ describe("mergeSeriesForChart", () => {
       { label: "2026-07-01", m1: 70 },
       { label: "2026-07-02", m1: 71, m2: 5 },
     ]);
+  });
+});
+
+describe("computeYAxisDomain", () => {
+  it("returns undefined for an empty series", () => {
+    expect(computeYAxisDomain([])).toBeUndefined();
+  });
+
+  it("pads the range by 20% above and below when the minimum is negative", () => {
+    const series = [
+      { date: "2026-07-01", value: -10 },
+      { date: "2026-07-02", value: 10 },
+    ];
+    // range=20, padding=4
+    expect(computeYAxisDomain(series)).toEqual([-14, 14]);
+  });
+
+  it("clamps the lower bound to 0 when the minimum value is 0 or more", () => {
+    const series = [
+      { date: "2026-07-01", value: 60 },
+      { date: "2026-07-02", value: 70 },
+    ];
+    // range=10, padding=2, min-padding=58 (>0のためそのまま)
+    expect(computeYAxisDomain(series)).toEqual([58, 72]);
+  });
+
+  it("clamps the lower bound to 0 even if min minus padding would go negative", () => {
+    const series = [
+      { date: "2026-07-01", value: 1 },
+      { date: "2026-07-02", value: 2 },
+    ];
+    // range=1, padding=0.2, min-padding=0.8 (>0のためそのまま)
+    expect(computeYAxisDomain(series)).toEqual([0.8, 2.2]);
+
+    const series2 = [
+      { date: "2026-07-01", value: 0 },
+      { date: "2026-07-02", value: 5 },
+    ];
+    // range=5, padding=1, min-padding=-1 だが min>=0 なので 0 にクランプ
+    expect(computeYAxisDomain(series2)).toEqual([0, 6]);
+  });
+
+  it("uses a fallback padding when every value is identical", () => {
+    expect(computeYAxisDomain([{ date: "2026-07-01", value: 70 }])).toEqual([56, 84]);
+    expect(computeYAxisDomain([{ date: "2026-07-01", value: 0 }])).toEqual([0, 1]);
   });
 });
 

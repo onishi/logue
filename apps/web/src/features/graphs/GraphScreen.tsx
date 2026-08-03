@@ -14,6 +14,7 @@ import { useEntries } from "../../hooks/useEntries";
 import { useMetrics } from "../../hooks/useMetrics";
 import {
   aggregateByGranularity,
+  computeYAxisDomain,
   movingAverage,
   seriesColorVar,
   toDailySeries,
@@ -164,7 +165,11 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
                   <LineChart data={series}>
                     <CartesianGrid stroke="var(--border)" strokeDasharray="0" vertical={false} />
                     <XAxis dataKey="date" stroke="var(--text)" tick={{ fill: "var(--text)" }} />
-                    <YAxis stroke="var(--text)" tick={{ fill: "var(--text)" }} />
+                    <YAxis
+                      stroke="var(--text)"
+                      tick={{ fill: "var(--text)" }}
+                      domain={computeYAxisDomain(series)}
+                    />
                     <Tooltip formatter={(value: unknown) => formatValue(value)} />
                     <Line
                       type="monotone"
