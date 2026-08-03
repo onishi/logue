@@ -739,6 +739,18 @@ p {
   opacity: 0.85;
   will-change: transform;
   transition: none;
+  /*
+   * ドラッグ中の要素はポインターに追従して他の項目の上に重なって表示されるため、
+   * pointer-events を切っておかないと document.elementFromPoint が常にこの要素
+   * 自身を拾ってしまい、下にある項目を並び替えのターゲットとして検出できなくなる。
+   */
+  pointer-events: none;
+}
+
+/* ドラッグ中の項目が現在どこに入るかを示す */
+.screen li.drop-target {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .edit-section {

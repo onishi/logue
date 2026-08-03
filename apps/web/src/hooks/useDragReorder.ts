@@ -10,6 +10,7 @@ export function useDragReorder<T extends { id: string }>(
   onReorder: (orderedIds: string[]) => void,
 ) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [order, setOrder] = useState<string[]>(() => items.map((item) => item.id));
   const orderRef = useRef(order);
   const onReorderRef = useRef(onReorder);
@@ -45,14 +46,20 @@ export function useDragReorder<T extends { id: string }>(
         el.style.transform = `translateY(${e.clientY - grabOffsetYRef.current - rect.top}px)`;
       }
 
+      // ドラッグ中の要素自体は pointer-events: none にしてあるので、ここで
+      // elementFromPoint が拾うのは常に「その下にある」別の項目になる。
       const target = document
         .elementFromPoint(e.clientX, e.clientY)
         ?.closest<HTMLElement>("[data-drag-id]");
-      const overId = target?.dataset.dragId;
-      if (!overId || overId === draggingId) return;
+      const overIdNow = target?.dataset.dragId ?? null;
+      if (!overIdNow || overIdNow === draggingId) {
+        setOverId(null);
+        return;
+      }
+      setOverId(overIdNow);
       setOrder((prev) => {
         const from = prev.indexOf(draggingId);
-        const to = prev.indexOf(overId);
+        const to = prev.indexOf(overIdNow);
         if (from === -1 || to === -1 || from === to) return prev;
         const next = [...prev];
         next.splice(from, 1);
@@ -65,6 +72,7 @@ export function useDragReorder<T extends { id: string }>(
       if (dragElRef.current) dragElRef.current.style.transform = "";
       dragElRef.current = null;
       setDraggingId(null);
+      setOverId(null);
       onReorderRef.current(orderRef.current);
     };
 
@@ -96,5 +104,5 @@ export function useDragReorder<T extends { id: string }>(
     },
   });
 
-  return { displayItems, draggingId, dragHandleProps };
+  return { displayItems, draggingId, overId, dragHandleProps };
 }

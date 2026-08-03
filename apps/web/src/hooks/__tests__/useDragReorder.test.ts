@@ -50,12 +50,38 @@ describe("useDragReorder", () => {
       document.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 10 }));
     });
     expect(result.current.displayItems.map((i) => i.id)).toEqual(["b", "a", "c"]);
+    expect(result.current.overId).toBe("b");
 
     act(() => {
       document.dispatchEvent(new MouseEvent("pointerup"));
     });
     expect(result.current.draggingId).toBeNull();
+    expect(result.current.overId).toBeNull();
     expect(onReorder).toHaveBeenCalledWith(["b", "a", "c"]);
+  });
+
+  it("clears overId once the pointer moves back over the dragged item itself", () => {
+    const onReorder = jest.fn();
+    const { result } = renderHook(() => useDragReorder(items, onReorder));
+
+    const elA = document.querySelector('[data-drag-id="a"]') as HTMLElement;
+    const elB = document.querySelector('[data-drag-id="b"]') as HTMLElement;
+
+    act(() => {
+      result.current.dragHandleProps("a").onPointerDown(makePointerDownEvent());
+    });
+
+    document.elementFromPoint = jest.fn().mockReturnValue(elB);
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 10 }));
+    });
+    expect(result.current.overId).toBe("b");
+
+    document.elementFromPoint = jest.fn().mockReturnValue(elA);
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 20 }));
+    });
+    expect(result.current.overId).toBeNull();
   });
 
   it("reverts to the items prop order once the drag ends (until the parent updates items)", () => {
