@@ -202,7 +202,10 @@ metric として作成する想定。
 - [ ] セキュリティレビュー（認証・入力バリデーション・CSRF/XSS対策）
 - [ ] Cloudflare Pages / Workers 本番環境デプロイ設定
 - [ ] 本番リリース（ユーザー確認の上でデプロイ）
-- [ ] ドキュメント整備（README, docs/ 更新）
+- [x] ドキュメント整備（README, docs/ 更新。issue #70。README.md を現在の画面構成
+      （CSV入出力の別画面化・ドラッグ&ドロップ並び替え・グラフのY軸自動調整など）と
+      Phase 7 完了内容に合わせて更新し、デプロイ手順へのリンクを追加。
+      docs/google-oauth-setup.md に Google スプレッドシート連携の追加設定手順を明記）
 
 ---
 
