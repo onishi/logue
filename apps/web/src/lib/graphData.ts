@@ -97,6 +97,22 @@ export function mergeSeriesForChart(seriesList: MetricSeries[]): Record<string, 
   });
 }
 
+/**
+ * グラフのY軸の表示範囲を、系列の最小値〜最大値に対して上下20%の余白を持たせて算出する。
+ * 最小値が0以上の場合は下限も0未満にはしない（マイナス側の余白を作らない）。
+ * 値が全て同じ（レンジ0）の場合は、その値の20%（0の場合は1）を余白として使う。
+ */
+export function computeYAxisDomain(series: SeriesPoint[]): [number, number] | undefined {
+  if (series.length === 0) return undefined;
+  const values = series.map((p) => p.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  const padding = range > 0 ? range * 0.2 : Math.abs(min) * 0.2 || 1;
+  const lower = min >= 0 ? Math.max(0, min - padding) : min - padding;
+  return [lower, max + padding];
+}
+
 const SERIES_COLOR_SLOTS = 8;
 
 /** metric の（選択状態に関わらない）固定インデックスから、常に同じ配色スロットを返す */
