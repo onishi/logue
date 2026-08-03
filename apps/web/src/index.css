@@ -737,6 +737,8 @@ p {
   z-index: 1;
   box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
   opacity: 0.85;
+  will-change: transform;
+  transition: none;
 }
 
 .edit-section {

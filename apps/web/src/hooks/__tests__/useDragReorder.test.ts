@@ -76,6 +76,37 @@ describe("useDragReorder", () => {
     expect(result.current.displayItems).toEqual(items);
   });
 
+  it("translates the dragged element so it visually follows the pointer", () => {
+    const onReorder = jest.fn();
+    const { result } = renderHook(() => useDragReorder(items, onReorder));
+
+    const elA = document.querySelector('[data-drag-id="a"]') as HTMLElement;
+    // jsdom はレイアウトを計算しないため、要素の位置を固定値でスタブする
+    elA.getBoundingClientRect = jest.fn().mockReturnValue({ top: 100 } as DOMRect);
+    document.elementFromPoint = jest.fn().mockReturnValue(elA);
+
+    act(() => {
+      result.current.dragHandleProps("a").onPointerDown({
+        preventDefault: jest.fn(),
+        button: 0,
+        pointerType: "mouse",
+        clientY: 110,
+        currentTarget: elA,
+      } as unknown as React.PointerEvent);
+    });
+
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 150 }));
+    });
+    // grabOffsetY = 110 - 100 = 10、translateY = 150 - 10 - 100 = 40
+    expect(elA.style.transform).toBe("translateY(40px)");
+
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointerup"));
+    });
+    expect(elA.style.transform).toBe("");
+  });
+
   it("does nothing when the pointer moves over an unknown target", () => {
     const onReorder = jest.fn();
     const { result } = renderHook(() => useDragReorder(items, onReorder));
