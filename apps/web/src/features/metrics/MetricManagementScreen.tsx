@@ -11,15 +11,6 @@ const METRIC_TYPE_LABELS: Record<MetricType, string> = {
   text: "自由入力",
 };
 
-function moveItem<T>(items: T[], index: number, direction: -1 | 1): T[] {
-  const target = index + direction;
-  if (target < 0 || target >= items.length) return items;
-  const next = [...items];
-  const [moved] = next.splice(index, 1);
-  next.splice(target, 0, moved as T);
-  return next;
-}
-
 function LabelListEditor({
   labels,
   onChange,
@@ -59,10 +50,6 @@ function LabelListEditor({
 
 function GroupRow({
   group,
-  canMoveUp,
-  canMoveDown,
-  onMoveUp,
-  onMoveDown,
   onRename,
   onDelete,
   isDragging,
@@ -70,10 +57,6 @@ function GroupRow({
   dragHandleProps,
 }: {
   group: MetricGroup;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRename: (name: string) => Promise<void>;
   onDelete: () => void;
   isDragging: boolean;
@@ -151,24 +134,6 @@ function GroupRow({
           <button
             type="button"
             className="icon-button"
-            onClick={onMoveUp}
-            disabled={!canMoveUp}
-            aria-label={`${group.name} を上に移動`}
-          >
-            <Icon name="arrow_upward" />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onMoveDown}
-            disabled={!canMoveDown}
-            aria-label={`${group.name} を下に移動`}
-          >
-            <Icon name="arrow_downward" />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
             onClick={() => setEditing(true)}
             aria-label={`${group.name} を編集`}
           >
@@ -203,14 +168,10 @@ function GroupManager({
     <section>
       <h2>記録項目グループ</h2>
       <ul>
-        {displayItems.map((group, index) => (
+        {displayItems.map((group) => (
           <GroupRow
             key={group.id}
             group={group}
-            canMoveUp={index > 0}
-            canMoveDown={index < displayItems.length - 1}
-            onMoveUp={() => void reorder(moveItem(displayItems, index, -1).map((g) => g.id))}
-            onMoveDown={() => void reorder(moveItem(displayItems, index, 1).map((g) => g.id))}
             onRename={async (name) => {
               if (name.trim()) await update(group.id, { name: name.trim() });
             }}
@@ -364,10 +325,6 @@ function MetricChoiceOptionsEditor({
 function MetricRow({
   metric,
   groups,
-  canMoveUp,
-  canMoveDown,
-  onMoveUp,
-  onMoveDown,
   onSaveGeneral,
   onSaveChoiceOptions,
   onToggleArchive,
@@ -378,10 +335,6 @@ function MetricRow({
 }: {
   metric: Metric;
   groups: MetricGroup[];
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onSaveGeneral: (input: {
     name: string;
     unit: string | null;
@@ -420,24 +373,6 @@ function MetricRow({
           {metric.isArchived && " [アーカイブ済み]"}
         </div>
         <div className="row-actions">
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onMoveUp}
-            disabled={!canMoveUp}
-            aria-label={`${metric.name} を上に移動`}
-          >
-            <Icon name="arrow_upward" />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onMoveDown}
-            disabled={!canMoveDown}
-            aria-label={`${metric.name} を下に移動`}
-          >
-            <Icon name="arrow_downward" />
-          </button>
           <button
             type="button"
             className="icon-button"
@@ -588,15 +523,11 @@ function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: Met
     <section>
       <h2>記録項目</h2>
       <ul>
-        {displayItems.map((metric, index) => (
+        {displayItems.map((metric) => (
           <MetricRow
             key={metric.id}
             metric={metric}
             groups={groups}
-            canMoveUp={index > 0}
-            canMoveDown={index < displayItems.length - 1}
-            onMoveUp={() => void reorder(moveItem(displayItems, index, -1).map((m) => m.id))}
-            onMoveDown={() => void reorder(moveItem(displayItems, index, 1).map((m) => m.id))}
             onSaveGeneral={(input) => update(metric.id, input).then(() => undefined)}
             onSaveChoiceOptions={(labels) =>
               update(metric.id, { choiceOptions: labels.map((label) => ({ label })) }).then(
