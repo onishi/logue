@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { CollapsibleSection } from "../../components/CollapsibleSection";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetrics } from "../../hooks/useMetrics";
 import {
@@ -80,53 +81,55 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     <div className="screen">
       <h2>グラフ</h2>
 
-      <div className="control-group">
-        <label>
-          表示単位
-          <select
-            aria-label="表示単位"
-            value={granularity}
-            onChange={(e) => setGranularity(e.target.value as Granularity)}
-          >
-            {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
-              <option key={key} value={key}>
-                {GRANULARITY_LABELS[key]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          移動平均
-          <select
-            aria-label="移動平均"
-            value={movingAveragePreset}
-            onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
-          >
-            {MOVING_AVERAGE_PRESETS.map((preset) => (
-              <option key={preset.value} value={preset.value}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        {movingAveragePreset === -1 && (
+      <CollapsibleSection label="表示設定">
+        <div className="control-group-fields">
           <label>
-            期間（日）
-            <input
-              aria-label="移動平均の期間（日）"
-              type="number"
-              min={2}
-              value={customWindow}
-              onChange={(e) => setCustomWindow(Number(e.target.value))}
-            />
+            表示単位
+            <select
+              aria-label="表示単位"
+              value={granularity}
+              onChange={(e) => setGranularity(e.target.value as Granularity)}
+            >
+              {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
+                <option key={key} value={key}>
+                  {GRANULARITY_LABELS[key]}
+                </option>
+              ))}
+            </select>
           </label>
-        )}
 
-        <button type="button" onClick={() => setShowTable((v) => !v)}>
-          {showTable ? "グラフで見る" : "表で見る"}
-        </button>
-      </div>
+          <label>
+            移動平均
+            <select
+              aria-label="移動平均"
+              value={movingAveragePreset}
+              onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
+            >
+              {MOVING_AVERAGE_PRESETS.map((preset) => (
+                <option key={preset.value} value={preset.value}>
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {movingAveragePreset === -1 && (
+            <label>
+              期間（日）
+              <input
+                aria-label="移動平均の期間（日）"
+                type="number"
+                min={2}
+                value={customWindow}
+                onChange={(e) => setCustomWindow(Number(e.target.value))}
+              />
+            </label>
+          )}
+
+          <button type="button" onClick={() => setShowTable((v) => !v)}>
+            {showTable ? "グラフで見る" : "表で見る"}
+          </button>
+        </div>
+      </CollapsibleSection>
 
       {numberMetrics.map((metric, index) => {
         const series = seriesByMetricId.get(metric.id) ?? [];

@@ -1,6 +1,7 @@
 import type { Entry, Metric } from "@logue/shared";
 import { buildGridRows } from "@logue/shared";
 import { useMemo, useState } from "react";
+import { CollapsibleSection } from "../../components/CollapsibleSection";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
@@ -151,39 +152,41 @@ export function EntryListScreen({
       )}
       {importMessage && <p role="status">{importMessage}</p>}
 
-      <label>
-        グループで絞り込み
-        <select
-          aria-label="グループで絞り込み"
-          value={groupFilter}
-          onChange={(e) => {
-            setGroupFilter(e.target.value);
-            setMetricFilter("");
-          }}
-        >
-          <option value="">すべて</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        記録項目で絞り込み
-        <select
-          aria-label="記録項目で絞り込み"
-          value={metricFilter}
-          onChange={(e) => setMetricFilter(e.target.value)}
-        >
-          <option value="">すべて</option>
-          {metricsInGroup.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <CollapsibleSection label="絞り込み">
+        <label>
+          グループで絞り込み
+          <select
+            aria-label="グループで絞り込み"
+            value={groupFilter}
+            onChange={(e) => {
+              setGroupFilter(e.target.value);
+              setMetricFilter("");
+            }}
+          >
+            <option value="">すべて</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          記録項目で絞り込み
+          <select
+            aria-label="記録項目で絞り込み"
+            value={metricFilter}
+            onChange={(e) => setMetricFilter(e.target.value)}
+          >
+            <option value="">すべて</option>
+            {metricsInGroup.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </CollapsibleSection>
 
       {!hasData ? (
         <p>記録がありません。</p>
