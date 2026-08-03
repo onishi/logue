@@ -142,6 +142,7 @@ describe("GraphScreen", () => {
       expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "表示設定" }));
     fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
 
     const rows = await screen.findAllByRole("row");
@@ -171,6 +172,7 @@ describe("GraphScreen", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
     );
+    fireEvent.click(screen.getByRole("button", { name: "表示設定" }));
     fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
 
     fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "30" } });
@@ -200,6 +202,7 @@ describe("GraphScreen", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
     );
+    fireEvent.click(screen.getByRole("button", { name: "表示設定" }));
     fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
 
     fireEvent.change(screen.getByLabelText("移動平均"), { target: { value: "-1" } });
@@ -230,6 +233,7 @@ describe("GraphScreen", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "体重（kg）" })).toBeInTheDocument(),
     );
+    fireEvent.click(screen.getByRole("button", { name: "表示設定" }));
     fireEvent.click(screen.getByRole("button", { name: "表で見る" }));
 
     fireEvent.change(screen.getByLabelText("表示単位"), { target: { value: "month" } });

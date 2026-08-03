@@ -78,6 +78,7 @@ describe("EntryListScreen", () => {
       expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "絞り込み" }));
     fireEvent.change(screen.getByLabelText("グループで絞り込み"), { target: { value: "g1" } });
 
     await waitFor(() =>
