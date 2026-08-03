@@ -5,11 +5,13 @@ import { Icon } from "./Icon";
 export function UserMenu({
   user,
   onOpenMetrics,
+  onOpenCsv,
   onOpenSettings,
   onLogout,
 }: {
   user: User;
   onOpenMetrics: () => void;
+  onOpenCsv: () => void;
   onOpenSettings: () => void;
   onLogout: () => void;
 }) {
@@ -68,6 +70,10 @@ export function UserMenu({
           <button type="button" role="menuitem" onClick={() => select(onOpenMetrics)}>
             <Icon name="sell" />
             項目管理
+          </button>
+          <button type="button" role="menuitem" onClick={() => select(onOpenCsv)}>
+            <Icon name="csv" />
+            CSV入出力
           </button>
           <button type="button" role="menuitem" onClick={() => select(onOpenSettings)}>
             <Icon name="settings" />

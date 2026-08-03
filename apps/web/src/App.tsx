@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "./components/Icon";
 import { UserMenu } from "./components/UserMenu";
 import { BulkEntryScreen } from "./features/entries/BulkEntryScreen";
+import { CsvScreen } from "./features/entries/CsvScreen";
 import { EntryFormScreen } from "./features/entries/EntryFormScreen";
 import { EntryListScreen } from "./features/entries/EntryListScreen";
 import { GraphScreen } from "./features/graphs/GraphScreen";
@@ -79,6 +80,7 @@ function AuthenticatedApp({
         <UserMenu
           user={user}
           onOpenMetrics={() => navigate("metrics")}
+          onOpenCsv={() => navigate("csv")}
           onOpenSettings={() => navigate("settings")}
           onLogout={onLogout}
         />
@@ -100,6 +102,7 @@ function AuthenticatedApp({
           />
         )}
         {activeTab === "bulk" && <BulkEntryScreen apiBaseUrl={apiBaseUrl} />}
+        {activeTab === "csv" && <CsvScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "graphs" && <GraphScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "metrics" && <MetricManagementScreen apiBaseUrl={apiBaseUrl} />}
         {activeTab === "settings" && (

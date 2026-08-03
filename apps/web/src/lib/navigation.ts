@@ -2,6 +2,7 @@ export const TAB_PATHS = {
   entry: "/",
   list: "/entries",
   bulk: "/entries/bulk",
+  csv: "/entries/csv",
   graphs: "/graphs",
   metrics: "/metrics",
   settings: "/settings",

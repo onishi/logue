@@ -7,12 +7,14 @@ const user = { id: "u1", email: "taro@example.com", name: "太郎", pictureUrl: 
 describe("UserMenu", () => {
   it("opens the menu and calls the matching handler when an item is selected", () => {
     const onOpenMetrics = jest.fn();
+    const onOpenCsv = jest.fn();
     const onOpenSettings = jest.fn();
     const onLogout = jest.fn();
     render(
       <UserMenu
         user={user}
         onOpenMetrics={onOpenMetrics}
+        onOpenCsv={onOpenCsv}
         onOpenSettings={onOpenSettings}
         onLogout={onLogout}
       />,
@@ -26,9 +28,27 @@ describe("UserMenu", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "設定" }));
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
     expect(onOpenMetrics).not.toHaveBeenCalled();
+    expect(onOpenCsv).not.toHaveBeenCalled();
     expect(onLogout).not.toHaveBeenCalled();
     // 選択後はメニューを閉じる
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("calls onOpenCsv when the CSV menu item is selected", () => {
+    const onOpenCsv = jest.fn();
+    render(
+      <UserMenu
+        user={user}
+        onOpenMetrics={jest.fn()}
+        onOpenCsv={onOpenCsv}
+        onOpenSettings={jest.fn()}
+        onLogout={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "太郎 のメニュー" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "CSV入出力" }));
+    expect(onOpenCsv).toHaveBeenCalledTimes(1);
   });
 
   it("closes the menu when clicking outside of it", () => {
@@ -37,6 +57,7 @@ describe("UserMenu", () => {
         <UserMenu
           user={user}
           onOpenMetrics={jest.fn()}
+          onOpenCsv={jest.fn()}
           onOpenSettings={jest.fn()}
           onLogout={jest.fn()}
         />
@@ -57,6 +78,7 @@ describe("UserMenu", () => {
         <UserMenu
           user={user}
           onOpenMetrics={jest.fn()}
+          onOpenCsv={jest.fn()}
           onOpenSettings={jest.fn()}
           onLogout={jest.fn()}
         />
@@ -78,6 +100,7 @@ describe("UserMenu", () => {
       <UserMenu
         user={user}
         onOpenMetrics={jest.fn()}
+        onOpenCsv={jest.fn()}
         onOpenSettings={jest.fn()}
         onLogout={jest.fn()}
       />,
@@ -96,6 +119,7 @@ describe("UserMenu", () => {
       <UserMenu
         user={user}
         onOpenMetrics={jest.fn()}
+        onOpenCsv={jest.fn()}
         onOpenSettings={jest.fn()}
         onLogout={jest.fn()}
       />,
@@ -109,6 +133,7 @@ describe("UserMenu", () => {
       <UserMenu
         user={{ ...user, pictureUrl: "https://example.com/avatar.png" }}
         onOpenMetrics={jest.fn()}
+        onOpenCsv={jest.fn()}
         onOpenSettings={jest.fn()}
         onLogout={jest.fn()}
       />,

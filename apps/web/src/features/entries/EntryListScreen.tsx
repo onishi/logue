@@ -1,15 +1,10 @@
 import type { Entry, Metric } from "@logue/shared";
-import { buildGridRows } from "@logue/shared";
 import { useMemo, useState } from "react";
 import { CollapsibleSection } from "../../components/CollapsibleSection";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
-import { downloadCsv, metricColumnLabel, toCsv } from "../../lib/csv";
-import { type CsvImportResult, parseEntriesCsv } from "../../lib/csvImport";
-import { todayDateString } from "../../lib/date";
-
-const MAX_VISIBLE_ISSUES = 20;
+import { metricColumnLabel } from "../../lib/csv";
 
 function formatValue(metric: Metric | undefined, value: string): string {
   if (!metric) return value;
@@ -33,13 +28,10 @@ export function EntryListScreen({
 }) {
   const { groups } = useMetricGroups(apiBaseUrl);
   const { metrics } = useMetrics(apiBaseUrl);
-  const { entries, create } = useEntries(apiBaseUrl);
+  const { entries } = useEntries(apiBaseUrl);
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
-  const [importPreview, setImportPreview] = useState<CsvImportResult | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   const metricsInGroup = groupFilter
     ? metrics.filter((m) => m.metricGroupId === groupFilter)
@@ -78,79 +70,12 @@ export function EntryListScreen({
 
   const hasData = metricColumns.length > 0 && dates.length > 0;
 
-  // 画面表示用の formatValue とは異なり、数値項目には単位を付けない（再インポート時に
-  // 数値として読み戻せるようにするため。単位は列ヘッダー側にのみ表示される）。
-  const csvRows = useMemo(() => buildGridRows(metricColumns, entries), [metricColumns, entries]);
-
-  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === "string" ? reader.result : "";
-      setImportPreview(parseEntriesCsv(text, metrics));
-      setImportMessage(null);
-    };
-    reader.readAsText(file);
-  };
-
-  const confirmImport = async () => {
-    if (!importPreview || importPreview.rows.length === 0) return;
-    setImporting(true);
-    try {
-      await Promise.all(importPreview.rows.map((row) => create(row)));
-      setImportMessage(`${importPreview.rows.length}件を読み込みました`);
-      setImportPreview(null);
-    } catch {
-      setImportMessage("読み込みに失敗しました");
-    } finally {
-      setImporting(false);
-    }
-  };
-
   return (
     <div className="screen">
       <h2>記録一覧</h2>
       <button type="button" onClick={onOpenBulk}>
         過去データを一括入力
       </button>
-      <label>
-        CSVから読み込む
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          aria-label="CSVから読み込む"
-          onChange={handleCsvFileChange}
-        />
-      </label>
-
-      {importPreview && (
-        <div role="status" className="import-preview">
-          <p>{importPreview.rows.length}件を読み込みます。</p>
-          {importPreview.issues.length > 0 && (
-            <ul>
-              {importPreview.issues.slice(0, MAX_VISIBLE_ISSUES).map((issue, index) => (
-                <li key={index}>{issue}</li>
-              ))}
-              {importPreview.issues.length > MAX_VISIBLE_ISSUES && (
-                <li>ほか{importPreview.issues.length - MAX_VISIBLE_ISSUES}件</li>
-              )}
-            </ul>
-          )}
-          <button
-            type="button"
-            onClick={() => void confirmImport()}
-            disabled={importing || importPreview.rows.length === 0}
-          >
-            インポートする
-          </button>
-          <button type="button" onClick={() => setImportPreview(null)} disabled={importing}>
-            キャンセル
-          </button>
-        </div>
-      )}
-      {importMessage && <p role="status">{importMessage}</p>}
 
       <CollapsibleSection label="絞り込み">
         <label>
@@ -191,49 +116,41 @@ export function EntryListScreen({
       {!hasData ? (
         <p>記録がありません。</p>
       ) : (
-        <>
-          <button
-            type="button"
-            onClick={() => downloadCsv(toCsv(csvRows), `logue-entries-${todayDateString()}.csv`)}
-          >
-            CSVでダウンロード
-          </button>
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>日付</th>
-                  {metricColumns.map((metric) => (
-                    <th key={metric.id}>{metricColumnLabel(metric)}</th>
-                  ))}
-                  <th aria-hidden="true"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {dates.map((date) => (
-                  <tr key={date}>
-                    <th scope="row">{date}</th>
-                    {metricColumns.map((metric) => {
-                      const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
-                      return (
-                        <td key={metric.id}>{entry ? formatValue(metric, entry.value) : "—"}</td>
-                      );
-                    })}
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => onEditDate(date)}
-                        aria-label={`${date}を編集`}
-                      >
-                        編集
-                      </button>
-                    </td>
-                  </tr>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
+                {metricColumns.map((metric) => (
+                  <th key={metric.id}>{metricColumnLabel(metric)}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+                <th aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {dates.map((date) => (
+                <tr key={date}>
+                  <th scope="row">{date}</th>
+                  {metricColumns.map((metric) => {
+                    const entry = entryByDateAndMetric.get(`${date}|${metric.id}`);
+                    return (
+                      <td key={metric.id}>{entry ? formatValue(metric, entry.value) : "—"}</td>
+                    );
+                  })}
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => onEditDate(date)}
+                      aria-label={`${date}を編集`}
+                    >
+                      編集
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
