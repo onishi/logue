@@ -66,6 +66,7 @@ function GroupRow({
   onRename,
   onDelete,
   isDragging,
+  isDropTarget,
   dragHandleProps,
 }: {
   group: MetricGroup;
@@ -76,6 +77,7 @@ function GroupRow({
   onRename: (name: string) => Promise<void>;
   onDelete: () => void;
   isDragging: boolean;
+  isDropTarget: boolean;
   dragHandleProps: { onPointerDown: (e: React.PointerEvent) => void };
 }) {
   const [editing, setEditing] = useState(false);
@@ -128,7 +130,13 @@ function GroupRow({
   }
 
   return (
-    <li data-drag-id={group.id} className={isDragging ? "dragging" : undefined}>
+    <li
+      data-drag-id={group.id}
+      className={
+        [isDragging && "dragging", isDropTarget && "drop-target"].filter(Boolean).join(" ") ||
+        undefined
+      }
+    >
       <div className="row-header">
         <button
           type="button"
@@ -186,7 +194,7 @@ function GroupManager({
   reorder: ReturnType<typeof useMetricGroups>["reorder"];
 }) {
   const [newGroupName, setNewGroupName] = useState("");
-  const { displayItems, draggingId, dragHandleProps } = useDragReorder(
+  const { displayItems, draggingId, overId, dragHandleProps } = useDragReorder(
     groups,
     (orderedIds) => void reorder(orderedIds),
   );
@@ -211,6 +219,7 @@ function GroupManager({
                 void remove(group.id);
             }}
             isDragging={draggingId === group.id}
+            isDropTarget={overId === group.id}
             dragHandleProps={dragHandleProps(group.id)}
           />
         ))}
@@ -364,6 +373,7 @@ function MetricRow({
   onToggleArchive,
   onDelete,
   isDragging,
+  isDropTarget,
   dragHandleProps,
 }: {
   metric: Metric;
@@ -381,12 +391,19 @@ function MetricRow({
   onToggleArchive: () => void;
   onDelete: () => void;
   isDragging: boolean;
+  isDropTarget: boolean;
   dragHandleProps: { onPointerDown: (e: React.PointerEvent) => void };
 }) {
   const [editing, setEditing] = useState(false);
 
   return (
-    <li data-drag-id={metric.id} className={isDragging ? "dragging" : undefined}>
+    <li
+      data-drag-id={metric.id}
+      className={
+        [isDragging && "dragging", isDropTarget && "drop-target"].filter(Boolean).join(" ") ||
+        undefined
+      }
+    >
       <div className="row-header">
         <button
           type="button"
@@ -562,7 +579,7 @@ function NewMetricForm({
 
 function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: MetricGroup[] }) {
   const { metrics, create, update, remove, reorder } = useMetrics(apiBaseUrl);
-  const { displayItems, draggingId, dragHandleProps } = useDragReorder(
+  const { displayItems, draggingId, overId, dragHandleProps } = useDragReorder(
     metrics,
     (orderedIds) => void reorder(orderedIds),
   );
@@ -592,6 +609,7 @@ function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: Met
                 void remove(metric.id);
             }}
             isDragging={draggingId === metric.id}
+            isDropTarget={overId === metric.id}
             dragHandleProps={dragHandleProps(metric.id)}
           />
         ))}
