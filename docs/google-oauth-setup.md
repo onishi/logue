@@ -17,3 +17,16 @@ logue へのログインは Google OAuth 2.0（Authorization Code Flow + PKCE）
 自分で生成して同様に設定する（例: `openssl rand -base64 32`）。
 
 管理方針の詳細は [secrets.md](./secrets.md) を参照。
+
+## Google スプレッドシート連携を使う場合の追加設定
+
+記録データを Google スプレッドシートと双方向同期する機能（設定画面の「Googleスプレッドシート連携」）
+を使うには、上記のログイン用設定に加えて以下が必要。ログイン機能自体には影響しない、独立した設定。
+
+1. 「APIとサービス」→「ライブラリ」で **Google Sheets API を有効化**する
+2. 「OAuth 同意画面」の「スコープ」に **`https://www.googleapis.com/auth/spreadsheets`** を追加する
+   （個人利用のテストモードであれば Google の審査は不要な想定）
+3. 同期したい Google スプレッドシートを用意し、ログイン後の設定画面で URL または ID を入力する
+
+連携用の refresh token は既存の `SESSION_SECRET` から導出した鍵で暗号化して保存するため、
+新しい環境変数・シークレットの追加は不要。
