@@ -84,13 +84,13 @@ sheets.get("/callback", async (c) => {
   });
 
   if (!tokens.refresh_token) {
-    return c.redirect(`${c.env.WEB_ORIGIN}/settings?sheets=no_refresh_token`);
+    return c.redirect(`${c.env.WEB_APP_URL}/settings?sheets=no_refresh_token`);
   }
 
   const encrypted = await encryptSecret(tokens.refresh_token, c.env.SESSION_SECRET);
   await upsertGoogleSheetsRefreshToken(c.env.DB, c.get("user").id, encrypted);
 
-  return c.redirect(`${c.env.WEB_ORIGIN}/settings?sheets=connected`);
+  return c.redirect(`${c.env.WEB_APP_URL}/settings?sheets=connected`);
 });
 
 sheets.get("/", async (c) => {

@@ -4,7 +4,10 @@ compatibility_date = "2025-01-01"
 
 [vars]
 # 本番の値。ローカル開発では .dev.vars で localhost に上書きする
-WEB_ORIGIN = "https://logue-web.pages.dev"
+# WEB_ORIGIN: CORS で許可するオリジン（パスを含めない）
+# WEB_APP_URL: 認証後にリダイレクトするフロントエンドの URL（wagaya.org 配下の /logue プレフィックスを含む）
+WEB_ORIGIN = "https://wagaya.org"
+WEB_APP_URL = "https://wagaya.org/logue"
 
 [[d1_databases]]
 binding = "DB"

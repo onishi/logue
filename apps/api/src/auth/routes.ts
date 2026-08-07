@@ -78,7 +78,7 @@ auth.get("/callback", async (c) => {
 
   await writeSessionCookie(c, c.env.SESSION_SECRET, userRow.id);
 
-  return c.redirect(c.env.WEB_ORIGIN);
+  return c.redirect(c.env.WEB_APP_URL);
 });
 
 auth.post("/logout", (c) => {

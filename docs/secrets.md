@@ -7,10 +7,11 @@
 - 必要な値:
   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: Google OAuth クライアント情報
   - `SESSION_SECRET`: セッション Cookie 署名用のランダム文字列
-- `wrangler.toml` の `[vars]` にある `WEB_ORIGIN`（ログイン後のリダイレクト先・CORS許可オリジン）は
+- `wrangler.toml` の `[vars]` にある `WEB_ORIGIN`（CORS許可オリジン。パスを含めない）・
+  `WEB_APP_URL`（ログイン後のリダイレクト先。`wagaya.org` 配下の `/logue` プレフィックスを含む）は
   本番用の値をデフォルトにしているため、ローカル開発では `.dev.vars` に
-  `WEB_ORIGIN=http://localhost:5173` を追加して上書きする（`wrangler dev` は同名キーを
-  `.dev.vars` の値で上書きする）
+  `WEB_ORIGIN=http://localhost:5173` / `WEB_APP_URL=http://localhost:5173/logue` を追加して
+  上書きする（`wrangler dev` は同名キーを `.dev.vars` の値で上書きする）
 
 ## apps/web（Cloudflare Pages / Vite）
 
@@ -53,7 +54,10 @@ npm run build --workspace apps/web
 npx wrangler pages deploy apps/web/dist --project-name logue-web
 ```
 
-- 本番 URL: Web = `https://logue-web.pages.dev` / API = `https://logue-api.anison.workers.dev`
+- 本番 URL: Web = `https://wagaya.org/logue`（実体は `https://logue-web.pages.dev`
+  を `wagaya.org` の Worker がリバースプロキシしている。直接 `logue-web.pages.dev` に
+  アクセスしてもアセットのパスが `/logue` 前提のため正しく動かない）/
+  API = `https://logue-api.anison.workers.dev`
 - `.env.production` は `.gitignore` の `.env.*` に含まれるため commit されない。デプロイのたびに
   上記のとおり手元で生成する
 - 本番の `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` は [google-oauth-setup.md](./google-oauth-setup.md)

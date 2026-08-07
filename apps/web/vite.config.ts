@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { APP_BASE } from "./src/lib/basePath.ts";
+
+const base = `${APP_BASE}/`;
 
 // https://vite.dev/config/
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -14,17 +18,27 @@ export default defineConfig({
         short_name: "logue",
         description:
           "体重・ファスティング・筋トレ・食事など、何でも自由に記録できるパーソナルログアプリ",
-        start_url: "/",
-        scope: "/",
+        start_url: base,
+        scope: base,
         display: "standalone",
         background_color: "#f6f5f3",
         theme_color: "#f6f5f3",
         lang: "ja",
         icons: [
-          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           {
-            src: "/icons/icon-maskable-512.png",
+            src: `${base}icons/icon-192.png`,
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: `${base}icons/icon-512.png`,
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: `${base}icons/icon-maskable-512.png`,
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

@@ -68,7 +68,7 @@ function AuthenticatedApp({
       <h1 className="sr-only">logue</h1>
       <header className="app-header">
         <a
-          href="/"
+          href={pathForTab("entry")}
           className="brand"
           onClick={(e) => {
             e.preventDefault();

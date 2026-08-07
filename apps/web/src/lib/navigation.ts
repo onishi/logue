@@ -1,11 +1,13 @@
+import { APP_BASE } from "./basePath";
+
 export const TAB_PATHS = {
-  entry: "/",
-  list: "/entries",
-  bulk: "/entries/bulk",
-  csv: "/entries/csv",
-  graphs: "/graphs",
-  metrics: "/metrics",
-  settings: "/settings",
+  entry: `${APP_BASE}/`,
+  list: `${APP_BASE}/entries`,
+  bulk: `${APP_BASE}/entries/bulk`,
+  csv: `${APP_BASE}/entries/csv`,
+  graphs: `${APP_BASE}/graphs`,
+  metrics: `${APP_BASE}/metrics`,
+  settings: `${APP_BASE}/settings`,
 } as const;
 
 export type TabKey = keyof typeof TAB_PATHS;
