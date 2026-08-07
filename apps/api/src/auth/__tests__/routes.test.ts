@@ -74,7 +74,7 @@ describe("Google OAuth flow", () => {
     );
 
     expect(callbackRes.status).toBe(302);
-    expect(callbackRes.headers.get("Location")).toBe(env.WEB_ORIGIN);
+    expect(callbackRes.headers.get("Location")).toBe(env.WEB_APP_URL);
     const sessionCookie = findSetCookie(callbackRes, "logue_session");
     expect(sessionCookie).toBeDefined();
 
