@@ -150,6 +150,32 @@ describe("parseGridRows", () => {
     expect(result.issues).toEqual(["2行目「体重（kg）」: 数値「abc」が不正です。"]);
   });
 
+  it("strips a trailing unit suffix from a number cell and keeps just the digits", () => {
+    const rows = [
+      ["日付", "体重（kg）"],
+      ["2026-07-01", "70kg"],
+      ["2026-07-02", "70.5 kg"],
+    ];
+    const result = parseGridRows(rows, metrics);
+    expect(result.issues).toEqual([]);
+    expect(result.rows).toEqual([
+      { metricId: "m1", recordedAt: "2026-07-01", value: "70" },
+      { metricId: "m1", recordedAt: "2026-07-02", value: "70.5" },
+    ]);
+  });
+
+  it("still reports an issue when the value is only the unit with no number", () => {
+    const result = parseGridRows(
+      [
+        ["日付", "体重（kg）"],
+        ["2026-07-01", "kg"],
+      ],
+      metrics,
+    );
+    expect(result.rows).toEqual([]);
+    expect(result.issues).toEqual(["2行目「体重（kg）」: 数値「kg」が不正です。"]);
+  });
+
   it("reports an issue for a choice value with no matching option", () => {
     const result = parseGridRows(
       [
