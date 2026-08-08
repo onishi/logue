@@ -591,7 +591,8 @@ p {
 }
 
 .screen input,
-.screen select {
+.screen select,
+.screen textarea {
   min-height: 44px;
   padding: 10px 12px 9px;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
@@ -605,8 +606,15 @@ p {
     border-bottom-width 0.15s ease;
 }
 
+.screen textarea {
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .screen input:focus,
-.screen select:focus {
+.screen select:focus,
+.screen textarea:focus {
   outline: none;
   border-bottom: 2px solid var(--accent);
   padding-bottom: 8px;

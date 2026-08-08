@@ -1,5 +1,5 @@
 import type { Metric } from "@logue/shared";
-import { parseEntriesCsv } from "../csvImport";
+import { parseEntriesCsv, parseEntriesTsv } from "../csvImport";
 
 const weightMetric: Metric = {
   id: "m1",
@@ -106,5 +106,23 @@ describe("parseEntriesCsv", () => {
     const result = parseEntriesCsv(csv, metrics);
     expect(result.issues).toEqual([]);
     expect(result.rows).toEqual([{ metricId: "m1", recordedAt: "2026-07-01", value: "70" }]);
+  });
+});
+
+describe("parseEntriesTsv", () => {
+  it("parses a tab-separated range copied from a spreadsheet", () => {
+    const tsv = ["日付\t体重（kg）\t体調", "2026-07-02\t\t良い", "2026-07-01\t70\t"].join("\n");
+    const result = parseEntriesTsv(tsv, metrics);
+    expect(result.issues).toEqual([]);
+    expect(result.rows).toEqual([
+      { metricId: "m2", recordedAt: "2026-07-02", value: "o1" },
+      { metricId: "m1", recordedAt: "2026-07-01", value: "70" },
+    ]);
+  });
+
+  it("returns an issue for empty input", () => {
+    const result = parseEntriesTsv("", metrics);
+    expect(result.rows).toEqual([]);
+    expect(result.issues).toEqual(["データが空です。"]);
   });
 });
