@@ -49,6 +49,20 @@ export type GridParseResult = {
 };
 
 /**
+ * 数値セルをパースする。素の数値としてそのまま解釈できない場合、記録項目に単位が
+ * 設定されていればセル末尾の単位表記（「70kg」「70 kg」など）を取り除いて再試行する
+ * （エクスポート時の表示用フォーマットや、単位付きでコピペされた値を許容するため）。
+ */
+function parseNumberCell(raw: string, unit: string | null): string | null {
+  if (raw !== "" && Number.isFinite(Number(raw))) return raw;
+  if (unit && raw.endsWith(unit)) {
+    const stripped = raw.slice(0, raw.length - unit.length).trim();
+    if (stripped !== "" && Number.isFinite(Number(stripped))) return stripped;
+  }
+  return null;
+}
+
+/**
  * buildGridRows と対になるパーサー。CSVエクスポート/インポート・スプレッドシート同期の
  * 両方で共用する。空欄セルは「未入力」として読み飛ばすのみで、削除は行わない
  * （一部の列・行だけ埋まった状態でも安全に取り込めるようにするため）。
@@ -103,13 +117,14 @@ export function parseGridRows(rows: string[][], metrics: Metric[]): GridParseRes
       }
 
       if (metric.type === "number") {
-        if (!Number.isFinite(Number(raw))) {
+        const value = parseNumberCell(raw, metric.unit);
+        if (value === null) {
           issues.push(
             `${lineNumber}行目「${metricColumnLabel(metric)}」: 数値「${raw}」が不正です。`,
           );
           return;
         }
-        result.push({ metricId: metric.id, recordedAt: date, value: raw });
+        result.push({ metricId: metric.id, recordedAt: date, value });
         return;
       }
 
