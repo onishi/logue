@@ -128,7 +128,9 @@ describe("/api/sheets", () => {
   it("stores the connection and redirects to settings on a successful callback", async () => {
     const callbackRes = await connect("fake-refresh-token");
     expect(callbackRes.status).toBe(302);
-    expect(callbackRes.headers.get("Location")).toBe(`${env.WEB_APP_URL}/settings?sheets=connected`);
+    expect(callbackRes.headers.get("Location")).toBe(
+      `${env.WEB_APP_URL}/settings?sheets=connected`,
+    );
 
     const statusRes = await app.request("/api/sheets", { headers: { Cookie: cookie } }, env);
     expect(await statusRes.json()).toMatchObject({ connected: true, syncEnabled: false });
