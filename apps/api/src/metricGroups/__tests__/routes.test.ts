@@ -1,5 +1,5 @@
 import app from "../../index";
-import { loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
+import { CSRF_TEST_HEADERS, loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 
 describe("/api/metric-groups", () => {
@@ -23,7 +23,7 @@ describe("/api/metric-groups", () => {
   });
 
   it("creates, lists, updates, reorders and deletes metric groups", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
 
     const createRes = await app.request(
       "/api/metric-groups",
@@ -89,7 +89,7 @@ describe("/api/metric-groups", () => {
       "/api/metric-groups",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: "{}",
       },
       env,
@@ -98,7 +98,7 @@ describe("/api/metric-groups", () => {
   });
 
   it("cannot update or delete another user's metric group", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const createRes = await app.request(
       "/api/metric-groups",
       { method: "POST", headers, body: JSON.stringify({ name: "体組成" }) },

@@ -1,3 +1,4 @@
+import { updateGoogleSheetsConfigInputSchema } from "@logue/shared";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import type { Env } from "../env";
@@ -109,15 +110,13 @@ sheets.get("/", async (c) => {
 });
 
 sheets.patch("/", async (c) => {
-  const body = await c.req.json().catch(() => null);
-  if (!body || typeof body !== "object") {
-    return c.json({ error: "invalid_request" }, 400);
+  const parsed = updateGoogleSheetsConfigInputSchema.safeParse(
+    await c.req.json().catch(() => null),
+  );
+  if (!parsed.success) {
+    return c.json({ error: "invalid_request", issues: parsed.error.issues }, 400);
   }
-  const { spreadsheetId, sheetName, syncEnabled } = body as {
-    spreadsheetId?: string;
-    sheetName?: string;
-    syncEnabled?: boolean;
-  };
+  const { spreadsheetId, sheetName, syncEnabled } = parsed.data;
 
   const existing = await findGoogleSheetsConnection(c.env.DB, c.get("user").id);
   if (!existing) {

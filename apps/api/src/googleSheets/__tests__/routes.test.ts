@@ -1,5 +1,5 @@
 import app from "../../index";
-import { loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
+import { CSRF_TEST_HEADERS, loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 
 function cookiePair(setCookieHeader: string): string {
@@ -81,7 +81,7 @@ describe("/api/sheets", () => {
     for (const req of [
       () => app.request("/api/sheets", {}, env),
       () => app.request("/api/sheets", { method: "PATCH" }, env),
-      () => app.request("/api/sheets/sync", { method: "POST" }, env),
+      () => app.request("/api/sheets/sync", { method: "POST", headers: CSRF_TEST_HEADERS }, env),
       () => app.request("/api/sheets", { method: "DELETE" }, env),
     ]) {
       const res = await req();
@@ -166,6 +166,21 @@ describe("/api/sheets", () => {
     });
   });
 
+  it("rejects a PATCH body with the wrong value types instead of crashing", async () => {
+    await connect("fake-refresh-token");
+    const res = await app.request(
+      "/api/sheets",
+      {
+        method: "PATCH",
+        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        body: JSON.stringify({ spreadsheetId: 12345, syncEnabled: "yes" }),
+      },
+      env,
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "invalid_request" });
+  });
+
   it("rejects PATCH before a connection exists", async () => {
     const res = await app.request(
       "/api/sheets",
@@ -183,7 +198,7 @@ describe("/api/sheets", () => {
     await connect("fake-refresh-token");
     const res = await app.request(
       "/api/sheets/sync",
-      { method: "POST", headers: { Cookie: cookie } },
+      { method: "POST", headers: { Cookie: cookie, ...CSRF_TEST_HEADERS } },
       env,
     );
     expect(res.status).toBe(400);
@@ -204,7 +219,7 @@ describe("/api/sheets", () => {
     mockGoogleForSheets({ sheetValues: [] });
     const res = await app.request(
       "/api/sheets/sync",
-      { method: "POST", headers: { Cookie: cookie } },
+      { method: "POST", headers: { Cookie: cookie, ...CSRF_TEST_HEADERS } },
       env,
     );
     expect(res.status).toBe(200);
