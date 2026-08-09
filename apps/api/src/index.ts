@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import authRoutes from "./auth/routes";
+import { requireCsrfHeader } from "./csrf";
 import entriesRoutes from "./entries/routes";
 import { listEnabledGoogleSheetsConnections } from "./db/googleSheets";
 import googleSheetsRoutes from "./googleSheets/routes";
@@ -19,6 +20,7 @@ app.use("/api/*", (c, next) =>
     credentials: true,
   })(c, next),
 );
+app.use("/api/*", requireCsrfHeader);
 
 app.get("/api/health", (c) => c.json({ status: "ok" }));
 

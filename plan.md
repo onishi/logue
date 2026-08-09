@@ -199,7 +199,29 @@ metric として作成する想定。
 
 - [ ] ユニットテストカバレッジ >80% 達成確認
 - [ ] E2E テスト（主要フロー: ログイン→記録→グラフ確認）
-- [ ] セキュリティレビュー（認証・入力バリデーション・CSRF/XSS対策）
+- [x] セキュリティレビュー（認証・入力バリデーション・CSRF/XSS対策。issue #69）
+  - 調査した結果、OAuth・PKCE・セッションCookie署名・IDOR（他ユーザーのデータへの
+    アクセス制御）・XSSは問題なし（`db/*.ts` の全 `:id` クエリが `user_id` も
+    フィルタしていることを確認、Reactのため危険なDOM操作なし）
+  - **CSRF（High）**: セッションCookieが `SameSite=None`（API/Webが別オリジンのため）
+    かつ CORS は送信元オリジンをレスポンスの可読性からしか守らないため、
+    `Content-Type: text/plain` 等の「シンプルリクエスト」となる POST は
+    プリフライトなしで他サイトから Cookie 付きで実行できてしまっていた。
+    フロントエンドの `apiFetch` が全リクエストに独自ヘッダー（`X-Logue-Client`）を
+    付与し、API側 `requireCsrfHeader`（`apps/api/src/csrf.ts`）が POST リクエストで
+    このヘッダーを必須化することで、他サイトからの実行はブラウザのCORSプリフライトで
+    ブロックされるようにした（実ブラウザ + 実際の Workers dev サーバーで、
+    別オリジンからの偽装POSTがサーバー側で403になり、DBへの書き込みが
+    発生しないことを確認済み）
+  - **入力バリデーション（Low）**: `PATCH /api/sheets` が型チェックなしの `as` キャストで
+    リクエストボディを扱っていたため、不正な型の値でクラッシュしうる箇所があった。
+    他のルートと同様に Zod スキーマ（`updateGoogleSheetsConfigInputSchema`）による
+    検証に統一
+  - **依存パッケージ（Moderate）**: `hono` の CORSミドルウェアにReDoS脆弱性
+    （GHSA-8j4g-w8fx-2239）があったため `^4.13.1` に更新。`wrangler`/`miniflare` 経由の
+    `undici` にも既知の脆弱性があるが、開発用ツールチェーンのみに閉じた依存で
+    ローカル開発サーバーにのみ影響するため、`wrangler` のメジャーバージョン更新を
+    伴う対応は別途慎重に行う（本番のCloudflare Workersランタイムは影響を受けない）
 - [ ] Cloudflare Pages / Workers 本番環境デプロイ設定
 - [ ] 本番リリース（ユーザー確認の上でデプロイ）
 - [x] ドキュメント整備（README, docs/ 更新。issue #70。README.md を現在の画面構成

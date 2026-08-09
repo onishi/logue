@@ -1,6 +1,6 @@
 import app from "../../index";
 import { encryptSecret } from "../../crypto";
-import { loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
+import { CSRF_TEST_HEADERS, loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 import { updateGoogleSheetsConfig, upsertGoogleSheetsRefreshToken } from "../../db/googleSheets";
 import { syncUserSheets } from "../sync";
@@ -68,7 +68,7 @@ describe("syncUserSheets", () => {
     const meRes = await app.request("/api/auth/me", { headers: { Cookie: cookie } }, env);
     userId = ((await meRes.json()) as { id: string }).id;
 
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const metricRes = await app.request(
       "/api/metrics",
       {
@@ -120,7 +120,7 @@ describe("syncUserSheets", () => {
   });
 
   it("pushes an app-only entry into the sheet", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     await app.request(
       "/api/entries",
       {
@@ -139,7 +139,7 @@ describe("syncUserSheets", () => {
   });
 
   it("prefers the sheet value on a same-cell conflict, and does not re-touch it on the next sync", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     await app.request(
       "/api/entries",
       {

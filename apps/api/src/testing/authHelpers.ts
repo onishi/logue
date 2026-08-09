@@ -1,6 +1,10 @@
 import app from "../index";
 import type { Env } from "../env";
 
+// requireCsrfHeader ミドルウェア（../csrf.ts）が POST リクエストに要求するヘッダー。
+// テストからの POST 呼び出しではこれを headers に含める必要がある。
+export const CSRF_TEST_HEADERS = { "X-Logue-Client": "test" };
+
 function cookiePair(setCookieHeader: string): string {
   return setCookieHeader.split(";")[0] ?? "";
 }

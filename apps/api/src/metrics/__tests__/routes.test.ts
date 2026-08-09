@@ -1,5 +1,5 @@
 import app from "../../index";
-import { loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
+import { CSRF_TEST_HEADERS, loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 
 type MetricResponse = {
@@ -33,7 +33,7 @@ describe("/api/metrics", () => {
   });
 
   it("creates a number metric", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const res = await app.request(
       "/api/metrics",
       {
@@ -56,7 +56,7 @@ describe("/api/metrics", () => {
   });
 
   it("requires choiceOptions when creating a choice metric", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const res = await app.request(
       "/api/metrics",
       { method: "POST", headers, body: JSON.stringify({ name: "体調", type: "choice" }) },
@@ -66,7 +66,7 @@ describe("/api/metrics", () => {
   });
 
   it("creates a choice metric with choice options", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const res = await app.request(
       "/api/metrics",
       {
@@ -86,7 +86,7 @@ describe("/api/metrics", () => {
   });
 
   it("updates choice options and rejects them for non-choice metrics", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const createRes = await app.request(
       "/api/metrics",
       { method: "POST", headers, body: JSON.stringify({ name: "体重", type: "number" }) },
@@ -115,7 +115,7 @@ describe("/api/metrics", () => {
   });
 
   it("reorders metrics", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const first = (await (
       await app.request(
         "/api/metrics",
@@ -141,7 +141,7 @@ describe("/api/metrics", () => {
   });
 
   it("deletes a metric and returns 404 for a missing one", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const created = (await (
       await app.request(
         "/api/metrics",

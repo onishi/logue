@@ -1,4 +1,5 @@
 import app from "../../index";
+import { CSRF_TEST_HEADERS } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 
 function cookiePair(setCookieHeader: string): string {
@@ -113,7 +114,11 @@ describe("Google OAuth flow", () => {
 
   it("clears the session cookie on logout", async () => {
     const env = createTestEnv();
-    const res = await app.request("/api/auth/logout", { method: "POST" }, env);
+    const res = await app.request(
+      "/api/auth/logout",
+      { method: "POST", headers: CSRF_TEST_HEADERS },
+      env,
+    );
     expect(res.status).toBe(204);
     const cleared = findSetCookie(res, "logue_session");
     expect(cleared).toMatch(/Max-Age=0/);

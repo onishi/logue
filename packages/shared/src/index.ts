@@ -44,3 +44,6 @@ export {
 
 export type { GridParseResult } from "./sheetGrid";
 export { metricColumnLabel, buildGridRows, parseGridRows } from "./sheetGrid";
+
+export type { UpdateGoogleSheetsConfigInput } from "./types/googleSheets";
+export { updateGoogleSheetsConfigInputSchema } from "./types/googleSheets";

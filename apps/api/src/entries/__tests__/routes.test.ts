@@ -1,5 +1,5 @@
 import app from "../../index";
-import { loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
+import { CSRF_TEST_HEADERS, loginAsTestUser, mockGoogleOAuth } from "../../testing/authHelpers";
 import { createTestEnv } from "../../testing/testEnv";
 
 type MetricResponse = {
@@ -18,7 +18,7 @@ async function createMetric(
     "/api/metrics",
     {
       method: "POST",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
       body: JSON.stringify(body),
     },
     env,
@@ -58,7 +58,7 @@ describe("/api/entries", () => {
       "/api/entries",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: JSON.stringify({
           metricId: numberMetric.id,
           value: "70.5",
@@ -76,7 +76,7 @@ describe("/api/entries", () => {
       "/api/entries",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: JSON.stringify({
           metricId: numberMetric.id,
           value: "not-a-number",
@@ -94,7 +94,7 @@ describe("/api/entries", () => {
       "/api/entries",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: JSON.stringify({
           metricId: choiceMetric.id,
           value: validOptionId,
@@ -109,7 +109,7 @@ describe("/api/entries", () => {
       "/api/entries",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: JSON.stringify({
           metricId: choiceMetric.id,
           value: "unknown-option",
@@ -126,7 +126,7 @@ describe("/api/entries", () => {
       "/api/entries",
       {
         method: "POST",
-        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS },
         body: JSON.stringify({ metricId: "unknown-metric", value: "1", recordedAt: "2026-07-20" }),
       },
       env,
@@ -135,7 +135,7 @@ describe("/api/entries", () => {
   });
 
   it("posting the same metric/day twice updates the existing entry instead of duplicating it", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     const firstRes = await app.request(
       "/api/entries",
       {
@@ -181,7 +181,7 @@ describe("/api/entries", () => {
   });
 
   it("lists, filters by date range, updates and deletes entries", async () => {
-    const headers = { Cookie: cookie, "Content-Type": "application/json" };
+    const headers = { Cookie: cookie, "Content-Type": "application/json", ...CSRF_TEST_HEADERS };
     for (const recordedAt of ["2026-07-01", "2026-07-10", "2026-07-20"]) {
       await app.request(
         "/api/entries",
