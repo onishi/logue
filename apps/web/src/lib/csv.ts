@@ -66,6 +66,16 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
+// Google スプレッドシートや Excel でセル範囲をコピーした際にクリップボードへ入る
+// タブ区切りテキストをパースする。CSVと異なりセル内にタブ・改行を含む場合の
+// クォートは考慮しない（このアプリで貼り付ける想定のデータ（日付・数値・選択肢名）に
+// タブや改行が含まれることは通常ないため）。
+export function parseTsv(text: string): string[][] {
+  const input = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  if (input === "") return [];
+  return input.split(/\r\n|\r|\n/).map((line) => line.split("\t"));
+}
+
 // Excel 等で開いても文字化けしないよう UTF-8 BOM (U+FEFF) を付与する。
 const UTF8_BOM = String.fromCharCode(0xfeff);
 

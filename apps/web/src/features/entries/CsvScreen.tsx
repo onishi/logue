@@ -5,10 +5,11 @@ import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
 import { useMetrics } from "../../hooks/useMetrics";
 import { downloadCsv, toCsv } from "../../lib/csv";
-import { type CsvImportResult, parseEntriesCsv } from "../../lib/csvImport";
+import { type CsvImportResult, parseEntriesCsv, parseEntriesTsv } from "../../lib/csvImport";
 import { todayDateString } from "../../lib/date";
 
 const MAX_VISIBLE_ISSUES = 20;
+const TSV_PLACEHOLDER = "日付\t体重（kg）\t体調\n2026-07-01\t70\t良い";
 
 export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const { groups } = useMetricGroups(apiBaseUrl);
@@ -17,6 +18,7 @@ export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
+  const [tsvText, setTsvText] = useState("");
   const [importPreview, setImportPreview] = useState<CsvImportResult | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -52,6 +54,11 @@ export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     reader.readAsText(file);
   };
 
+  const handleTsvImport = () => {
+    setImportPreview(parseEntriesTsv(tsvText, metrics));
+    setImportMessage(null);
+  };
+
   const confirmImport = async () => {
     if (!importPreview || importPreview.rows.length === 0) return;
     setImporting(true);
@@ -59,6 +66,7 @@ export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
       await Promise.all(importPreview.rows.map((row) => create(row)));
       setImportMessage(`${importPreview.rows.length}件を読み込みました`);
       setImportPreview(null);
+      setTsvText("");
     } catch {
       setImportMessage("読み込みに失敗しました");
     } finally {
@@ -131,6 +139,20 @@ export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
             onChange={handleCsvFileChange}
           />
         </label>
+
+        <label>
+          スプレッドシートからコピーした内容を貼り付けて読み込む
+          <textarea
+            aria-label="スプレッドシートからコピーした内容を貼り付けて読み込む"
+            value={tsvText}
+            onChange={(e) => setTsvText(e.target.value)}
+            placeholder={TSV_PLACEHOLDER}
+            rows={6}
+          />
+        </label>
+        <button type="button" onClick={handleTsvImport} disabled={!tsvText.trim()}>
+          貼り付けた内容を読み込む
+        </button>
 
         {importPreview && (
           <div role="status" className="import-preview">

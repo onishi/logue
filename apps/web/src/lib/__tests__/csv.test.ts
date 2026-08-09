@@ -1,5 +1,5 @@
 import type { Metric } from "@logue/shared";
-import { metricColumnLabel, parseCsv, toCsv } from "../csv";
+import { metricColumnLabel, parseCsv, parseTsv, toCsv } from "../csv";
 
 describe("toCsv", () => {
   it("joins rows and fields with commas and CRLF", () => {
@@ -65,6 +65,31 @@ describe("parseCsv", () => {
 
   it("returns an empty array for empty input", () => {
     expect(parseCsv("")).toEqual([]);
+  });
+});
+
+describe("parseTsv", () => {
+  it("parses tab-separated rows split by CRLF", () => {
+    expect(parseTsv("日付\t体重（kg）\r\n2026-07-01\t70\r\n2026-07-02\t71.5")).toEqual([
+      ["日付", "体重（kg）"],
+      ["2026-07-01", "70"],
+      ["2026-07-02", "71.5"],
+    ]);
+  });
+
+  it("parses rows split by plain LF", () => {
+    expect(parseTsv("a\tb\n1\t2")).toEqual([
+      ["a", "b"],
+      ["1", "2"],
+    ]);
+  });
+
+  it("strips a leading UTF-8 BOM", () => {
+    expect(parseTsv(`${String.fromCharCode(0xfeff)}a\tb`)).toEqual([["a", "b"]]);
+  });
+
+  it("returns an empty array for empty input", () => {
+    expect(parseTsv("")).toEqual([]);
   });
 });
 
