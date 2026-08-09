@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import type { Env } from "../env";
 import { randomToken, sha256Base64Url } from "../crypto";
-import { createUser, findUserByGoogleSub } from "../db/users";
+import { createUser, findUserByGoogleSub, toPublicUser } from "../db/users";
 import {
   buildGoogleAuthorizationUrl,
   exchangeGoogleCodeForTokens,
@@ -79,6 +79,40 @@ auth.get("/callback", async (c) => {
   await writeSessionCookie(c, c.env.SESSION_SECRET, userRow.id);
 
   return c.redirect(c.env.WEB_APP_URL);
+});
+
+/**
+ * E2Eテスト専用のログインバイパス。Google OAuthを経由せず、指定したメールアドレスの
+ * ユーザーで直接セッションを発行する。E2E_TEST_AUTH="1" が設定されている環境でのみ
+ * 有効（本番の wrangler.toml / secrets には絶対に設定しない）。未設定時はルート自体が
+ * 存在しないかのように 404 を返す（本番で誤って有効化された場合でも、探索されただけで
+ * 存在を悟られないようにするため）。
+ */
+auth.post("/test-login", async (c) => {
+  if (c.env.E2E_TEST_AUTH !== "1") {
+    return c.notFound();
+  }
+
+  const body = await c.req.json().catch(() => null);
+  const email = body && typeof body === "object" ? (body as { email?: unknown }).email : null;
+  if (typeof email !== "string" || !email) {
+    return c.json({ error: "invalid_request" }, 400);
+  }
+
+  const googleSub = `e2e-test:${email}`;
+  let userRow = await findUserByGoogleSub(c.env.DB, googleSub);
+  if (!userRow) {
+    userRow = await createUser(c.env.DB, {
+      googleSub,
+      email,
+      name: "E2E Test User",
+      pictureUrl: null,
+    });
+  }
+
+  await writeSessionCookie(c, c.env.SESSION_SECRET, userRow.id);
+
+  return c.json(toPublicUser(userRow));
 });
 
 auth.post("/logout", (c) => {

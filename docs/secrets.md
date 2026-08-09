@@ -12,6 +12,11 @@
   本番用の値をデフォルトにしているため、ローカル開発では `.dev.vars` に
   `WEB_ORIGIN=http://localhost:5173` / `WEB_APP_URL=http://localhost:5173/logue` を追加して
   上書きする（`wrangler dev` は同名キーを `.dev.vars` の値で上書きする）
+- `E2E_TEST_AUTH`: **本番・通常の開発環境（`.dev.vars`）には絶対に設定しない。**
+  `"1"` を設定すると、Google OAuthを経由せず任意のメールアドレスでセッションを発行できる
+  テスト専用エンドポイント `POST /api/auth/test-login` が有効になる（未設定時は404を返し、
+  存在自体が分からない）。E2Eテスト実行時のみ `apps/api/.dev.vars.e2e`（`npm run test:e2e` が
+  自動生成、git管理外）で設定される。詳細は README の「E2Eテスト」節を参照
 
 ## apps/web（Cloudflare Pages / Vite）
 
