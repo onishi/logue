@@ -124,3 +124,89 @@ describe("Google OAuth flow", () => {
     expect(cleared).toMatch(/Max-Age=0/);
   });
 });
+
+describe("POST /api/auth/test-login (E2Eテスト用ログインバイパス)", () => {
+  it("is disabled by default (E2E_TEST_AUTH is unset)", async () => {
+    const env = createTestEnv();
+    const res = await app.request(
+      "/api/auth/test-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "e2e@example.com" }),
+      },
+      env,
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('stays disabled even if E2E_TEST_AUTH is set to something other than the exact value "1"', async () => {
+    const env = createTestEnv({ E2E_TEST_AUTH: "true" });
+    const res = await app.request(
+      "/api/auth/test-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "e2e@example.com" }),
+      },
+      env,
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("issues a session cookie without contacting Google when E2E_TEST_AUTH=1", async () => {
+    const env = createTestEnv({ E2E_TEST_AUTH: "1" });
+    const res = await app.request(
+      "/api/auth/test-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "e2e@example.com" }),
+      },
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ email: "e2e@example.com" });
+    const sessionCookie = findSetCookie(res, "logue_session");
+    expect(sessionCookie).toBeDefined();
+
+    const meRes = await app.request(
+      "/api/auth/me",
+      { headers: { Cookie: cookiePair(sessionCookie ?? "") } },
+      env,
+    );
+    expect(meRes.status).toBe(200);
+    expect(await meRes.json()).toMatchObject({ email: "e2e@example.com" });
+  });
+
+  it("reuses the same user on repeated calls with the same email", async () => {
+    const env = createTestEnv({ E2E_TEST_AUTH: "1" });
+    const headers = { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" };
+    const body = JSON.stringify({ email: "e2e@example.com" });
+
+    const first = await app.request("/api/auth/test-login", { method: "POST", headers, body }, env);
+    const second = await app.request(
+      "/api/auth/test-login",
+      { method: "POST", headers, body },
+      env,
+    );
+
+    expect(((await first.json()) as { id: string }).id).toBe(
+      ((await second.json()) as { id: string }).id,
+    );
+  });
+
+  it("rejects a request without an email", async () => {
+    const env = createTestEnv({ E2E_TEST_AUTH: "1" });
+    const res = await app.request(
+      "/api/auth/test-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: "{}",
+      },
+      env,
+    );
+    expect(res.status).toBe(400);
+  });
+});

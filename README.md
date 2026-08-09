@@ -116,7 +116,12 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 - ドラッグ&ドロップの並び替え（`useDragReorder`）、開閉式の絞り込みセクション（`CollapsibleSection`）
 - CSV エクスポート/インポート（`apps/web/src/lib/csv.ts`, `csvImport.ts`,
   `packages/shared/src/sheetGrid.ts`）
-- GitHub Actions CI（format check / lint / typecheck / test）
+- GitHub Actions CI（format check / lint / typecheck / test / E2E）
+- E2E テスト（Playwright。ログイン→記録項目作成→記録→記録一覧・グラフ確認→CSV入出力の
+  主要フローを実ブラウザ・実際の Workers dev サーバー・ローカル D1 で検証。Google OAuth の
+  実ログインは自動化できないため、`E2E_TEST_AUTH=1` の環境でのみ有効なテスト専用ログイン
+  エンドポイント `POST /api/auth/test-login` でバイパスする。本番環境ではこの変数を設定
+  しないため無効。詳細は「E2Eテスト」節を参照）
 - PWA 化（`vite-plugin-pwa`。manifest・アイコン一式・service worker によるアプリシェルの
   プリキャッシュ、`/api/*` GET の NetworkFirst ランタイムキャッシュ）
 - モバイルファーストなレスポンシブ UI（タブレット・デスクトップ幅ではアプリシェルを
@@ -126,7 +131,7 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 
 ### 未実装（Phase 8 以降、詳細は plan.md）
 
-- ユニットテストカバレッジの再確認、E2Eテスト、セキュリティレビュー
+- ユニットテストカバレッジの再確認
 - 本番環境デプロイ設定の自動化・本番リリース、ドキュメント整備の継続
 - Phase 9（将来拡張）: Android アプリ、ウェアラブル/スマート体重計連携、OCR取り込みなど
 
@@ -154,17 +159,27 @@ npm run dev:api   # Cloudflare Workers API (http://localhost:8787)
 npm run dev:web   # Vite 開発サーバー (http://localhost:5173)
 ```
 
-## デプロイ
+## E2Eテスト
 
-Cloudflare Pages 側は Git 連携を設定していないため、手元から `wrangler` で手動デプロイする。
+[Playwright](https://playwright.dev/) で、実際のブラウザ・実際の Cloudflare Workers dev
+サーバー（`wrangler dev`）・ローカル D1 を使って主要フローを検証する（`e2e/` 配下）。
+コンポーネント単位の Jest テストとは別に、画面をまたいだ一連の操作（ログイン→記録項目作成→
+記録→記録一覧・グラフ確認→CSV入出力）を通しで確認する。
 
 ```bash
-npm run deploy
+npm run test:e2e
 ```
 
-内部的には D1 のリモートマイグレーション適用 → API（Cloudflare Workers）デプロイ → Web
-（Cloudflare Pages）ビルド・デプロイの順に実行する（`npm run deploy:api` / `npm run deploy:web` で
-個別実行も可能）。詳細・本番 URL は [docs/secrets.md](./docs/secrets.md) を参照。
+- `npm run pretest:e2e`（`test:e2e` の実行時に自動で先に走る）が `apps/api/.dev.vars.e2e`
+  を生成し、ローカル D1 にマイグレーションを適用する
+- Google OAuth の実ログインは自動化できないため、`E2E_TEST_AUTH=1` の環境でのみ有効な
+  テスト専用ログインエンドポイント `POST /api/auth/test-login`（`apps/api/src/auth/routes.ts`）
+  でバイパスする。このエンドポイントは環境変数が未設定（本番・通常の開発環境はすべてこちら）
+  の場合 404 を返し、存在自体が分からないようになっている
+- ブラウザは、動作環境にプリインストール済みの Chromium があればそれを使い、なければ
+  Playwright の通常のブラウザ解決（`playwright install` 済みのもの）に任せる
+  （`playwright.config.ts`）
+- CI（GitHub Actions）では `e2e` ジョブとして、通常のユニットテストとは別に実行する
 
 ## コマンド一覧
 
@@ -174,10 +189,12 @@ npm run deploy
 | `npm run format` / `npm run format:check` | Prettier（適用 / チェックのみ） |
 | `npm run typecheck`                       | 各ワークスペースの型チェック    |
 | `npm test`                                | Jest（全ワークスペース）        |
+| `npm run test:e2e`                        | Playwright による E2E テスト    |
 | `npm run dev:web` / `npm run dev:api`     | 開発サーバー起動                |
 | `npm run deploy`                          | 本番デプロイ（API・Web 両方）   |
 
-CI（GitHub Actions）では push / PR ごとに `format:check` → `lint` → `typecheck` → `test` を実行する。
+CI（GitHub Actions）では push / PR ごとに、`test` ジョブで `format:check` → `lint` →
+`typecheck` → `test` を、`e2e` ジョブで E2E テストを実行する。
 
 ## 開発ワークフロー
 
