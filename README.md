@@ -6,9 +6,14 @@
 
 詳細な開発計画・進捗は [plan.md](./plan.md) を参照。本 README は現時点の仕様・構成のスナップショット。
 
+公開URL: https://wagaya.org/logue（実体は Cloudflare Pages
+`logue-web.pages.dev` を `wagaya.org` の Worker がリバースプロキシしている。
+詳細は [docs/secrets.md](./docs/secrets.md) を参照）
+
 ## 技術スタック
 
 - **フロントエンド**: React（関数コンポーネント）+ Vite + TypeScript strict、Cloudflare Pages にデプロイ
+  （`wagaya.org/logue` 配下で動く前提でベースパスを固定。`apps/web/src/lib/basePath.ts`）
 - **バックエンド**: Cloudflare Workers + [Hono](https://hono.dev/)。REST API として Web／将来クライアントから共通利用
 - **DB**: Cloudflare D1（SQLite）
 - **認証**: Google OAuth 2.0（Authorization Code Flow + PKCE）。Workers 上で実装し、セッションは署名付き Cookie
