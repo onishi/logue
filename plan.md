@@ -235,8 +235,19 @@ metric として作成する想定。
     `undici` にも既知の脆弱性があるが、開発用ツールチェーンのみに閉じた依存で
     ローカル開発サーバーにのみ影響するため、`wrangler` のメジャーバージョン更新を
     伴う対応は別途慎重に行う（本番のCloudflare Workersランタイムは影響を受けない）
-- [ ] Cloudflare Pages / Workers 本番環境デプロイ設定
-- [ ] 本番リリース（ユーザー確認の上でデプロイ）
+- [x] Cloudflare Pages / Workers 本番環境デプロイ設定
+  - `logue-web`（Cloudflare Pages）・`logue-api`（Cloudflare Workers）に加え、
+    公開URLとして `wagaya.org/logue` を採用。`wagaya.org` のリバースプロキシ Worker
+    （別リポジトリ `onishi/wagaya.org`）が `/logue` プレフィックスを剥がして
+    `logue-web.pages.dev` に転送する構成
+  - フロントエンドは `wagaya.org/logue` 配下で動く前提で vite の `base` を `/logue/` に
+    固定（`apps/web/src/lib/basePath.ts` の `APP_BASE` が唯一のソース。PWA manifest・
+    画面遷移パス・アイコン参照もすべてここから導出）。直接 `logue-web.pages.dev` に
+    アクセスした場合はアセットのパスが `/logue` 前提のため動かない
+  - API側は CORS許可オリジン（`WEB_ORIGIN`）とログイン後リダイレクト先
+    （`WEB_APP_URL`、`/logue` パスを含む）を分離して両方 `wagaya.org` 基準に変更
+  - 詳細は [docs/secrets.md](./docs/secrets.md) を参照
+- [x] 本番リリース（ユーザー確認の上でデプロイ済み。`https://wagaya.org/logue`）
 - [x] ドキュメント整備（README, docs/ 更新。issue #70。README.md を現在の画面構成
       （CSV入出力の別画面化・ドラッグ&ドロップ並び替え・グラフのY軸自動調整など）と
       Phase 7 完了内容に合わせて更新し、デプロイ手順へのリンクを追加。
