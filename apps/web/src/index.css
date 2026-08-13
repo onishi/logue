@@ -227,6 +227,7 @@ p {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
+  box-sizing: border-box;
   width: 100%;
   max-width: var(--app-max-width);
   z-index: 20;
