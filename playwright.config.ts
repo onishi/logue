@@ -5,7 +5,7 @@ const API_PORT = process.env.E2E_API_PORT ?? "8798";
 const WEB_PORT = process.env.E2E_WEB_PORT ?? "5199";
 
 export const E2E_API_BASE_URL = `http://localhost:${API_PORT}`;
-const webBaseUrl = `http://localhost:${WEB_PORT}/logue/`;
+const webBaseUrl = `http://localhost:${WEB_PORT}/`;
 
 // 一部のサンドボックス環境にはこのパスに Chromium がプリインストールされており、
 // 使うと再ダウンロードを避けられる。存在しない環境（CI・通常のローカル開発機など）では

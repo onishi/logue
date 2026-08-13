@@ -11,7 +11,7 @@ const contents = `GOOGLE_CLIENT_ID=e2e-unused-client-id
 GOOGLE_CLIENT_SECRET=e2e-unused-client-secret
 SESSION_SECRET=e2e-test-session-secret-not-for-production-use
 WEB_ORIGIN=http://localhost:${webPort}
-WEB_APP_URL=http://localhost:${webPort}/logue
+WEB_APP_URL=http://localhost:${webPort}
 E2E_TEST_AUTH=1
 `;
 

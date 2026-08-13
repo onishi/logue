@@ -1,6 +1,5 @@
 /**
- * wagaya.org のリバースプロキシ配下 (`/logue`) で動かすためのベースパス。
- * vite.config.ts の `base` と一致させる。ローカル開発・ビルド後のどちらも
- * このプレフィックス付きの URL でのみ動作する。
+ * logue.wagaya.org サブドメインのルートで動かすためのベースパス。
+ * vite.config.ts の `base` と一致させる。
  */
-export const APP_BASE = "/logue";
+export const APP_BASE = "";
