@@ -26,9 +26,11 @@ export function EntryListScreen({
   onEditDate: (date: string) => void;
   onOpenBulk: () => void;
 }) {
-  const { groups } = useMetricGroups(apiBaseUrl);
-  const { metrics } = useMetrics(apiBaseUrl);
-  const { entries } = useEntries(apiBaseUrl);
+  const { groups, status: groupsStatus } = useMetricGroups(apiBaseUrl);
+  const { metrics, status: metricsStatus } = useMetrics(apiBaseUrl);
+  const { entries, status: entriesStatus } = useEntries(apiBaseUrl);
+  const isLoading =
+    groupsStatus === "loading" || metricsStatus === "loading" || entriesStatus === "loading";
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
@@ -110,7 +112,9 @@ export function EntryListScreen({
         </label>
       </CollapsibleSection>
 
-      {!hasData ? (
+      {isLoading ? (
+        <p>読み込み中...</p>
+      ) : !hasData ? (
         <p>記録がありません。</p>
       ) : (
         <div className="table-scroll">

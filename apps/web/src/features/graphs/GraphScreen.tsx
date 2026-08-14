@@ -41,8 +41,8 @@ function formatValue(value: unknown): string {
 }
 
 export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
-  const { metrics } = useMetrics(apiBaseUrl);
-  const { entries } = useEntries(apiBaseUrl);
+  const { metrics, status: metricsStatus } = useMetrics(apiBaseUrl);
+  const { entries, status: entriesStatus } = useEntries(apiBaseUrl);
 
   const numberMetrics = useMemo(
     () =>
@@ -68,6 +68,15 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     }
     return map;
   }, [numberMetrics, entries, movingAverageWindow, granularity]);
+
+  if (metricsStatus === "loading") {
+    return (
+      <div className="screen">
+        <h2>グラフ</h2>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
 
   if (numberMetrics.length === 0) {
     return (
@@ -138,7 +147,9 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
         return (
           <div key={metric.id} className="chart-card">
             <h3>{label}</h3>
-            {series.length === 0 ? (
+            {entriesStatus === "loading" ? (
+              <p>読み込み中...</p>
+            ) : series.length === 0 ? (
               <p>記録がありません。</p>
             ) : showTable ? (
               <div className="table-scroll">

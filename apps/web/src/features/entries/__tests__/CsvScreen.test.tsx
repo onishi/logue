@@ -105,6 +105,17 @@ describe("CsvScreen", () => {
     expect(screen.queryByRole("button", { name: "CSVでダウンロード" })).not.toBeInTheDocument();
   });
 
+  it("shows a loading message instead of the nothing-to-export guidance while data is still loading", async () => {
+    server.entries.length = 0;
+
+    render(<CsvScreen apiBaseUrl={API_BASE_URL} />);
+    expect(screen.getByText("読み込み中...")).toBeInTheDocument();
+    expect(screen.queryByText("書き出せる記録がありません。")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("書き出せる記録がありません。")).toBeInTheDocument(),
+    );
+  });
+
   it("scopes the exported CSV to the selected group", async () => {
     render(<CsvScreen apiBaseUrl={API_BASE_URL} />);
     await waitFor(() =>

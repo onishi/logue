@@ -27,8 +27,8 @@ export function EntryFormScreen({
   apiBaseUrl: string;
   initialDate?: string;
 }) {
-  const { groups } = useMetricGroups(apiBaseUrl);
-  const { metrics } = useMetrics(apiBaseUrl);
+  const { groups, status: groupsStatus } = useMetricGroups(apiBaseUrl);
+  const { metrics, status: metricsStatus } = useMetrics(apiBaseUrl);
 
   const [recordedAt, setRecordedAt] = useState(initialDate ?? todayDateString());
   const {
@@ -91,6 +91,15 @@ export function EntryFormScreen({
       setSubmitting(false);
     }
   };
+
+  if (groupsStatus === "loading" || metricsStatus === "loading") {
+    return (
+      <div className="screen">
+        <h2 className="sr-only">記録する</h2>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
 
   if (sections.length === 0) {
     return (

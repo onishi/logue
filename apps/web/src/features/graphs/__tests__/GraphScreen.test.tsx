@@ -29,6 +29,15 @@ describe("GraphScreen", () => {
     delete globalThis.fetch;
   });
 
+  it("shows a loading message instead of the no-metrics guidance while metrics are still loading", async () => {
+    render(<GraphScreen apiBaseUrl={API_BASE_URL} />);
+    expect(screen.getByText("読み込み中...")).toBeInTheDocument();
+    expect(screen.queryByText(/数値型の記録項目がまだありません/)).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/数値型の記録項目がまだありません/)).toBeInTheDocument(),
+    );
+  });
+
   it("shows a guidance message when there are no number metrics", async () => {
     server.metrics.push({
       id: "m1",

@@ -18,6 +18,13 @@ describe("EntryFormScreen", () => {
     delete globalThis.fetch;
   });
 
+  it("shows a loading message instead of the empty-metrics guidance while metrics are still loading", async () => {
+    render(<EntryFormScreen apiBaseUrl={API_BASE_URL} />);
+    expect(screen.getByText("読み込み中...")).toBeInTheDocument();
+    expect(screen.queryByText(/記録項目がまだありません/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
+  });
+
   it("shows a guidance message when there are no active metrics", async () => {
     render(<EntryFormScreen apiBaseUrl={API_BASE_URL} />);
     await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
