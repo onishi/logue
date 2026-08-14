@@ -130,12 +130,68 @@ describe("parseGridRows", () => {
     const result = parseGridRows(
       [
         ["日付", "体重（kg）"],
-        ["2026/07/01", "70"],
+        ["07/01/2026", "70"],
       ],
       metrics,
     );
     expect(result.rows).toEqual([]);
-    expect(result.issues).toEqual(["2行目: 日付「2026/07/01」の形式が不正です（YYYY-MM-DD）。"]);
+    expect(result.issues).toEqual(["2行目: 日付「07/01/2026」の形式が不正です（YYYY-MM-DD）。"]);
+  });
+
+  it("reports an issue for a date that does not exist on the calendar", () => {
+    const result = parseGridRows(
+      [
+        ["日付", "体重（kg）"],
+        ["2026-02-30", "70"],
+      ],
+      metrics,
+    );
+    expect(result.rows).toEqual([]);
+    expect(result.issues).toEqual(["2行目: 日付「2026-02-30」の形式が不正です（YYYY-MM-DD）。"]);
+  });
+
+  it("accepts slash-separated dates and dates with a trailing weekday in parens", () => {
+    const rows = [
+      ["日付", "体重（kg）"],
+      ["2026/07/01", "70"],
+      ["2026/3/7(火)", "71"],
+      ["2026/3/8（水）", "72"],
+    ];
+    const result = parseGridRows(rows, metrics);
+    expect(result.issues).toEqual([]);
+    expect(result.rows).toEqual([
+      { metricId: "m1", recordedAt: "2026-07-01", value: "70" },
+      { metricId: "m1", recordedAt: "2026-03-07", value: "71" },
+      { metricId: "m1", recordedAt: "2026-03-08", value: "72" },
+    ]);
+  });
+
+  it("matches a bare metric name column to the unit-suffixed metric column", () => {
+    const rows = [
+      ["日付", "体重"],
+      ["2026-07-01", "70"],
+    ];
+    const result = parseGridRows(rows, metrics);
+    expect(result.issues).toEqual([]);
+    expect(result.rows).toEqual([{ metricId: "m1", recordedAt: "2026-07-01", value: "70" }]);
+  });
+
+  it("does not guess when the bare name matches more than one metric", () => {
+    const duplicateNameMetric: Metric = {
+      ...weightMetric,
+      id: "m4",
+      metricGroupId: "g3",
+      unit: "lb",
+    };
+    const rows = [
+      ["日付", "体重"],
+      ["2026-07-01", "70"],
+    ];
+    const result = parseGridRows(rows, [...metrics, duplicateNameMetric]);
+    expect(result.rows).toEqual([]);
+    expect(result.issues).toEqual([
+      "列「体重」に一致する記録項目が見つからないためスキップします。",
+    ]);
   });
 
   it("reports an issue for a non-numeric value in a number column", () => {
