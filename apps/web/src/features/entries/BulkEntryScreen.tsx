@@ -19,7 +19,7 @@ function buildDateRange(from: string, to: string): string[] {
 }
 
 export function BulkEntryScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
-  const { metrics } = useMetrics(apiBaseUrl);
+  const { metrics, status: metricsStatus } = useMetrics(apiBaseUrl);
   const activeMetrics = useMemo(() => metrics.filter((m) => !m.isArchived), [metrics]);
 
   const [metricId, setMetricId] = useState("");
@@ -96,6 +96,15 @@ export function BulkEntryScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
       setSubmitting(false);
     }
   };
+
+  if (metricsStatus === "loading") {
+    return (
+      <div className="screen">
+        <h2>過去データを一括入力</h2>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
 
   if (activeMetrics.length === 0) {
     return (

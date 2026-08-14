@@ -23,6 +23,13 @@ describe("BulkEntryScreen", () => {
     await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
   });
 
+  it("shows a loading message instead of the empty-metrics guidance while metrics are still loading", async () => {
+    render(<BulkEntryScreen apiBaseUrl={API_BASE_URL} />);
+    expect(screen.getByText("読み込み中...")).toBeInTheDocument();
+    expect(screen.queryByText(/記録項目がまだありません/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/記録項目がまだありません/)).toBeInTheDocument());
+  });
+
   it("auto-selects the first metric and lists one row per day in the range, pre-filled from existing entries", async () => {
     server.metrics.push({
       id: "m1",

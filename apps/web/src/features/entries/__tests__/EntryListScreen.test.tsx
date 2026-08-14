@@ -50,6 +50,17 @@ describe("EntryListScreen", () => {
     delete globalThis.fetch;
   });
 
+  it("shows a loading message instead of the empty-records guidance while data is still loading", async () => {
+    render(
+      <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,
+    );
+    expect(screen.getByText("読み込み中...")).toBeInTheDocument();
+    expect(screen.queryByText("記録がありません。")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("columnheader", { name: /体重/ })).toBeInTheDocument(),
+    );
+  });
+
   it("shows a pivot table with dates as rows and metrics as columns", async () => {
     render(
       <EntryListScreen apiBaseUrl={API_BASE_URL} onEditDate={jest.fn()} onOpenBulk={jest.fn()} />,

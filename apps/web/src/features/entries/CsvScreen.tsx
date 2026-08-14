@@ -12,9 +12,11 @@ const MAX_VISIBLE_ISSUES = 20;
 const TSV_PLACEHOLDER = "日付\t体重（kg）\t体調\n2026-07-01\t70\t良い";
 
 export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
-  const { groups } = useMetricGroups(apiBaseUrl);
-  const { metrics } = useMetrics(apiBaseUrl);
-  const { entries, create } = useEntries(apiBaseUrl);
+  const { groups, status: groupsStatus } = useMetricGroups(apiBaseUrl);
+  const { metrics, status: metricsStatus } = useMetrics(apiBaseUrl);
+  const { entries, status: entriesStatus, create } = useEntries(apiBaseUrl);
+  const isExportDataLoading =
+    groupsStatus === "loading" || metricsStatus === "loading" || entriesStatus === "loading";
 
   const [groupFilter, setGroupFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
@@ -116,7 +118,9 @@ export function CsvScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
           </label>
         </CollapsibleSection>
 
-        {hasExportData ? (
+        {isExportDataLoading ? (
+          <p>読み込み中...</p>
+        ) : hasExportData ? (
           <button
             type="button"
             onClick={() => downloadCsv(toCsv(csvRows), `logue-entries-${todayDateString()}.csv`)}
