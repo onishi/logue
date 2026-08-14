@@ -75,10 +75,10 @@ describe("parseEntriesCsv", () => {
   });
 
   it("reports an issue for a malformed date and skips that row", () => {
-    const csv = ["日付,体重（kg）", "2026/07/01,70"].join("\r\n");
+    const csv = ["日付,体重（kg）", "07/01/2026,70"].join("\r\n");
     const result = parseEntriesCsv(csv, metrics);
     expect(result.rows).toEqual([]);
-    expect(result.issues).toEqual(["2行目: 日付「2026/07/01」の形式が不正です（YYYY-MM-DD）。"]);
+    expect(result.issues).toEqual(["2行目: 日付「07/01/2026」の形式が不正です（YYYY-MM-DD）。"]);
   });
 
   it("reports an issue for a non-numeric value in a number column", () => {

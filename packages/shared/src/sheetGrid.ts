@@ -1,10 +1,43 @@
 import type { CreateEntryInput, Entry } from "./types/entry";
 import type { Metric } from "./types/metric";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_PATTERN = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/;
+// 末尾の曜日表記（「(火)」「（火）」など）を取り除く
+const TRAILING_WEEKDAY_PATTERN = /[（(][^）)]*[）)]\s*$/;
 
 export function metricColumnLabel(metric: Metric): string {
   return `${metric.name}${metric.unit ? `（${metric.unit}）` : ""}${metric.isArchived ? " [アーカイブ済み]" : ""}`;
+}
+
+/**
+ * セルの日付表記を YYYY-MM-DD に正規化する。区切りは「-」「/」どちらも許容し、
+ * 月・日はゼロ埋めなしでもよい。末尾に「(火)」のような曜日表記が付いていても取り除く。
+ * 実在しない日付（2月30日など）は不正として null を返す。
+ */
+function normalizeDate(raw: string): string | null {
+  const withoutWeekday = raw.replace(TRAILING_WEEKDAY_PATTERN, "").trim();
+  const match = DATE_PATTERN.exec(withoutWeekday);
+  if (!match) return null;
+  const yearStr = match[1]!;
+  const monthStr = match[2]!;
+  const dayStr = match[3]!;
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return `${yearStr}-${monthStr.padStart(2, "0")}-${dayStr.padStart(2, "0")}`;
+}
+
+function findMetricByName(nameToMetrics: Map<string, Metric[]>, label: string): Metric | undefined {
+  const candidates = nameToMetrics.get(label);
+  return candidates?.length === 1 ? candidates[0] : undefined;
 }
 
 function formatCellValue(metric: Metric, value: string): string {
@@ -82,8 +115,19 @@ export function parseGridRows(rows: string[][], metrics: Metric[]): GridParseRes
   }
 
   const labelToMetric = new Map(metrics.map((m) => [metricColumnLabel(m), m]));
+  // 単位なしの項目名だけの列見出し（例:「体重」）も、単位付き列（「体重（kg）」）に
+  // 一意に対応するなら受け入れる。同名項目が複数ある場合は曖昧なので対象外。
+  const nameToMetrics = new Map<string, Metric[]>();
+  for (const m of metrics) {
+    const list = nameToMetrics.get(m.name);
+    if (list) {
+      list.push(m);
+    } else {
+      nameToMetrics.set(m.name, [m]);
+    }
+  }
   const columns: (Metric | undefined)[] = header.slice(1).map((label) => {
-    const metric = labelToMetric.get(label);
+    const metric = labelToMetric.get(label) ?? findMetricByName(nameToMetrics, label);
     if (!metric) {
       issues.push(`列「${label}」に一致する記録項目が見つからないためスキップします。`);
     }
@@ -93,9 +137,10 @@ export function parseGridRows(rows: string[][], metrics: Metric[]): GridParseRes
   const result: CreateEntryInput[] = [];
   body.forEach((line, bodyIndex) => {
     const lineNumber = bodyIndex + 2; // ヘッダー行を1行目として数える
-    const date = line[0] ?? "";
-    if (!DATE_PATTERN.test(date)) {
-      issues.push(`${lineNumber}行目: 日付「${date}」の形式が不正です（YYYY-MM-DD）。`);
+    const rawDate = (line[0] ?? "").trim();
+    const date = normalizeDate(rawDate);
+    if (!date) {
+      issues.push(`${lineNumber}行目: 日付「${rawDate}」の形式が不正です（YYYY-MM-DD）。`);
       return;
     }
 
