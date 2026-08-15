@@ -38,9 +38,62 @@ describe("MetricManagementScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "記録項目を追加" }));
 
     await waitFor(() => expect(screen.getByText("体重")).toBeInTheDocument());
-    expect(screen.getByText("体重").closest("li")).toHaveTextContent("体組成");
+    expect(screen.getByText("体重").closest(".metric-group-section")).toHaveTextContent("体組成");
     expect(server.metrics).toHaveLength(1);
     expect(server.metrics[0]).toMatchObject({ name: "体重", unit: "kg", type: "number" });
+  });
+
+  it("groups metrics under their metric group, with an 未分類 section for ungrouped ones", async () => {
+    server.groups.push(
+      { id: "g1", name: "体組成", sortOrder: 0 },
+      { id: "g2", name: "食事", sortOrder: 1 },
+    );
+    server.metrics.push(
+      {
+        id: "m1",
+        metricGroupId: "g1",
+        name: "体重",
+        type: "number",
+        unit: "kg",
+        sortOrder: 0,
+        isArchived: false,
+        choiceOptions: [],
+      },
+      {
+        id: "m2",
+        metricGroupId: "g2",
+        name: "カロリー",
+        type: "number",
+        unit: "kcal",
+        sortOrder: 1,
+        isArchived: false,
+        choiceOptions: [],
+      },
+      {
+        id: "m3",
+        metricGroupId: null,
+        name: "メモ",
+        type: "text",
+        unit: null,
+        sortOrder: 2,
+        isArchived: false,
+        choiceOptions: [],
+      },
+    );
+
+    render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() => expect(screen.getByText("体重")).toBeInTheDocument());
+
+    const weightSection = screen.getByText("体重").closest(".metric-group-section");
+    expect(weightSection).toHaveTextContent("体組成");
+    expect(weightSection).not.toHaveTextContent("カロリー");
+
+    const calorieSection = screen.getByText("カロリー").closest(".metric-group-section");
+    expect(calorieSection).toHaveTextContent("食事");
+    expect(calorieSection).not.toHaveTextContent("体重");
+
+    const memoSection = screen.getByText("メモ").closest(".metric-group-section");
+    expect(memoSection).toHaveTextContent("未分類");
   });
 
   it("adds a choice metric with choice options", async () => {

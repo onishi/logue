@@ -697,6 +697,18 @@ p {
   gap: 8px;
 }
 
+.metric-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-group-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .screen li {
   display: flex;
   flex-wrap: wrap;

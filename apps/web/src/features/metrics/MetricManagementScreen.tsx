@@ -204,9 +204,16 @@ function GroupManager({
   );
 }
 
-function metricGroupLabel(groups: MetricGroup[], metricGroupId: string | null): string {
-  if (metricGroupId === null) return "未分類";
-  return groups.find((g) => g.id === metricGroupId)?.name ?? "未分類";
+function groupedMetrics(
+  metrics: Metric[],
+  groups: MetricGroup[],
+): { group: MetricGroup | null; metrics: Metric[] }[] {
+  const sections = groups.map((group) => ({
+    group,
+    metrics: metrics.filter((m) => m.metricGroupId === group.id),
+  }));
+  const ungrouped = metrics.filter((m) => m.metricGroupId === null);
+  return ungrouped.length > 0 ? [...sections, { group: null, metrics: ungrouped }] : sections;
 }
 
 function MetricGeneralFields({
@@ -368,9 +375,7 @@ function MetricRow({
         </button>
         <div className="row-summary">
           <strong>{metric.name}</strong> ({METRIC_TYPE_LABELS[metric.type]}
-          {metric.unit ? ` / ${metric.unit}` : ""}) -{" "}
-          {metricGroupLabel(groups, metric.metricGroupId)}
-          {metric.isArchived && " [アーカイブ済み]"}
+          {metric.unit ? ` / ${metric.unit}` : ""}){metric.isArchived && " [アーカイブ済み]"}
         </div>
         <div className="row-actions">
           <button
@@ -519,32 +524,41 @@ function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: Met
     (orderedIds) => void reorder(orderedIds),
   );
 
+  const sections = groupedMetrics(displayItems, groups);
+
   return (
     <section>
       <h2>記録項目</h2>
-      <ul>
-        {displayItems.map((metric) => (
-          <MetricRow
-            key={metric.id}
-            metric={metric}
-            groups={groups}
-            onSaveGeneral={(input) => update(metric.id, input).then(() => undefined)}
-            onSaveChoiceOptions={(labels) =>
-              update(metric.id, { choiceOptions: labels.map((label) => ({ label })) }).then(
-                () => undefined,
-              )
-            }
-            onToggleArchive={() => void update(metric.id, { isArchived: !metric.isArchived })}
-            onDelete={() => {
-              if (window.confirm(`記録項目「${metric.name}」を削除しますか？`))
-                void remove(metric.id);
-            }}
-            isDragging={draggingId === metric.id}
-            isDropTarget={overId === metric.id}
-            dragHandleProps={dragHandleProps(metric.id)}
-          />
+      <div className="metric-group-list">
+        {sections.map(({ group, metrics: sectionMetrics }) => (
+          <div className="metric-group-section" key={group?.id ?? "ungrouped"}>
+            <h3>{group?.name ?? "未分類"}</h3>
+            <ul>
+              {sectionMetrics.map((metric) => (
+                <MetricRow
+                  key={metric.id}
+                  metric={metric}
+                  groups={groups}
+                  onSaveGeneral={(input) => update(metric.id, input).then(() => undefined)}
+                  onSaveChoiceOptions={(labels) =>
+                    update(metric.id, { choiceOptions: labels.map((label) => ({ label })) }).then(
+                      () => undefined,
+                    )
+                  }
+                  onToggleArchive={() => void update(metric.id, { isArchived: !metric.isArchived })}
+                  onDelete={() => {
+                    if (window.confirm(`記録項目「${metric.name}」を削除しますか？`))
+                      void remove(metric.id);
+                  }}
+                  isDragging={draggingId === metric.id}
+                  isDropTarget={overId === metric.id}
+                  dragHandleProps={dragHandleProps(metric.id)}
+                />
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
       <NewMetricForm groups={groups} onCreate={(input) => void create(input)} />
     </section>
   );
