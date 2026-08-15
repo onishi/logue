@@ -1,5 +1,6 @@
 import type { CreateMetricInput, Metric, MetricGroup, MetricType } from "@logue/shared";
 import { useState } from "react";
+import { CollapsibleSection } from "../../components/CollapsibleSection";
 import { Icon } from "../../components/Icon";
 import { useDragReorder } from "../../hooks/useDragReorder";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
@@ -185,21 +186,23 @@ function GroupManager({
           />
         ))}
       </ul>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!newGroupName.trim()) return;
-          void create({ name: newGroupName.trim() }).then(() => setNewGroupName(""));
-        }}
-      >
-        <input
-          aria-label="新しいグループ名"
-          placeholder="新しいグループ名"
-          value={newGroupName}
-          onChange={(e) => setNewGroupName(e.target.value)}
-        />
-        <button type="submit">グループを追加</button>
-      </form>
+      <CollapsibleSection label="追加" ariaLabel="グループの追加フォームを開く">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!newGroupName.trim()) return;
+            void create({ name: newGroupName.trim() }).then(() => setNewGroupName(""));
+          }}
+        >
+          <input
+            aria-label="新しいグループ名"
+            placeholder="新しいグループ名"
+            value={newGroupName}
+            onChange={(e) => setNewGroupName(e.target.value)}
+          />
+          <button type="submit">グループを追加</button>
+        </form>
+      </CollapsibleSection>
     </section>
   );
 }
@@ -465,7 +468,6 @@ function NewMetricForm({
 
   return (
     <form onSubmit={submit}>
-      <h3>新しい記録項目を追加</h3>
       <label>
         名前
         <input
@@ -559,7 +561,9 @@ function MetricManager({ apiBaseUrl, groups }: { apiBaseUrl: string; groups: Met
           </div>
         ))}
       </div>
-      <NewMetricForm groups={groups} onCreate={(input) => void create(input)} />
+      <CollapsibleSection label="追加" ariaLabel="記録項目の追加フォームを開く">
+        <NewMetricForm groups={groups} onCreate={(input) => void create(input)} />
+      </CollapsibleSection>
     </section>
   );
 }
