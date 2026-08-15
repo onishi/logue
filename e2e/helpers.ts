@@ -16,8 +16,17 @@ export async function goToCsvScreen(page: Page) {
   await page.getByRole("menuitem", { name: "CSV入出力" }).click();
 }
 
+/** 折りたたまれている「追加」フォームを開く（すでに開いている場合は何もしない）。 */
+async function openAddForm(page: Page, toggleName: string) {
+  const toggle = page.getByRole("button", { name: toggleName });
+  if ((await toggle.getAttribute("aria-expanded")) === "false") {
+    await toggle.click();
+  }
+}
+
 /** 項目管理画面で新しい記録項目グループを作成する（画面遷移は呼び出し側の責務）。 */
 export async function createGroup(page: Page, name: string) {
+  await openAddForm(page, "グループの追加フォームを開く");
   await page.getByLabel("新しいグループ名").fill(name);
   await page.getByRole("button", { name: "グループを追加" }).click();
   await page.getByRole("listitem").filter({ hasText: name }).waitFor();
@@ -28,6 +37,7 @@ export async function createNumberMetric(
   page: Page,
   options: { name: string; unit?: string; groupName?: string },
 ) {
+  await openAddForm(page, "記録項目の追加フォームを開く");
   await page.getByLabel("新しい記録項目の名前").fill(options.name);
   await page.getByLabel("新しい記録項目の種別").selectOption("number");
   if (options.unit) {

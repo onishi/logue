@@ -24,12 +24,14 @@ describe("MetricManagementScreen", () => {
   it("adds a group and a number metric assigned to it", async () => {
     render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "グループの追加フォームを開く" }));
     fireEvent.change(screen.getByLabelText("新しいグループ名"), { target: { value: "体組成" } });
     fireEvent.click(screen.getByRole("button", { name: "グループを追加" }));
     await waitFor(() =>
       expect(screen.getByText("体組成", { selector: "span" })).toBeInTheDocument(),
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "記録項目の追加フォームを開く" }));
     fireEvent.change(screen.getByLabelText("新しい記録項目の名前"), { target: { value: "体重" } });
     fireEvent.change(screen.getByLabelText("新しい記録項目の単位"), { target: { value: "kg" } });
     fireEvent.change(screen.getByLabelText("新しい記録項目のグループ"), {
@@ -41,6 +43,24 @@ describe("MetricManagementScreen", () => {
     expect(screen.getByText("体重").closest(".metric-group-section")).toHaveTextContent("体組成");
     expect(server.metrics).toHaveLength(1);
     expect(server.metrics[0]).toMatchObject({ name: "体重", unit: "kg", type: "number" });
+  });
+
+  it("keeps the group/metric add forms hidden until their 追加 toggle is opened", async () => {
+    render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "グループの追加フォームを開く" }),
+      ).toBeInTheDocument(),
+    );
+
+    expect(screen.queryByLabelText("新しいグループ名")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("新しい記録項目の名前")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "グループの追加フォームを開く" }));
+    expect(screen.getByLabelText("新しいグループ名")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "記録項目の追加フォームを開く" }));
+    expect(screen.getByLabelText("新しい記録項目の名前")).toBeInTheDocument();
   });
 
   it("groups metrics under their metric group, with an 未分類 section for ungrouped ones", async () => {
@@ -99,6 +119,7 @@ describe("MetricManagementScreen", () => {
   it("adds a choice metric with choice options", async () => {
     render(<MetricManagementScreen apiBaseUrl={API_BASE_URL} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "記録項目の追加フォームを開く" }));
     fireEvent.change(screen.getByLabelText("新しい記録項目の名前"), { target: { value: "体調" } });
     fireEvent.change(screen.getByLabelText("新しい記録項目の種別"), {
       target: { value: "choice" },

@@ -3,10 +3,12 @@ import { Icon } from "./Icon";
 
 export function CollapsibleSection({
   label,
+  ariaLabel,
   defaultOpen = false,
   children,
 }: {
   label: string;
+  ariaLabel?: string;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
@@ -21,6 +23,7 @@ export function CollapsibleSection({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls={contentId}
+        aria-label={ariaLabel}
       >
         <span>{label}</span>
         <Icon name={open ? "keyboard_arrow_up" : "keyboard_arrow_down"} />
