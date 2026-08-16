@@ -1,10 +1,7 @@
 import { expect, test } from "./fixtures";
 import { createNumberMetric, goToTab } from "./helpers";
 
-test("グラフ画面で表示単位・移動平均・表ビューを切り替えられる", async ({
-  page,
-  loginAsTestUser,
-}) => {
+test("グラフ画面で表示単位・移動平均を切り替えられる", async ({ page, loginAsTestUser }) => {
   await loginAsTestUser();
   await page.goto("/");
 
@@ -26,11 +23,9 @@ test("グラフ画面で表示単位・移動平均・表ビューを切り替�
   await goToTab(page, "グラフ");
   await expect(page.getByRole("heading", { name: "体重（kg）" })).toBeVisible();
 
-  await page.getByRole("button", { name: "表示設定" }).click();
+  // 表示設定は常時表示（開閉のトグルなし）
   await page.getByLabel("表示単位").selectOption("week");
   await page.getByLabel("移動平均").selectOption("7");
-
-  await page.getByRole("button", { name: "表で見る" }).click();
-  await expect(page.getByRole("columnheader", { name: "日付" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "グラフで見る" })).toBeVisible();
+  await expect(page.getByLabel("表示単位")).toHaveValue("week");
+  await expect(page.getByLabel("移動平均")).toHaveValue("7");
 });
