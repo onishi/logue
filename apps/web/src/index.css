@@ -538,6 +538,17 @@ p {
   gap: 12px;
 }
 
+.control-group-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.control-group-row select {
+  flex: 1;
+  min-width: 0;
+}
+
 .collapsible {
   display: flex;
   flex-direction: column;

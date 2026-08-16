@@ -9,7 +9,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CollapsibleSection } from "../../components/CollapsibleSection";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetrics } from "../../hooks/useMetrics";
 import {
@@ -53,7 +52,6 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const [granularity, setGranularity] = useState<Granularity>("day");
   const [movingAveragePreset, setMovingAveragePreset] = useState<number>(0);
   const [customWindow, setCustomWindow] = useState(14);
-  const [showTable, setShowTable] = useState(false);
 
   const movingAverageWindow = movingAveragePreset === -1 ? customWindow : movingAveragePreset;
 
@@ -91,55 +89,41 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     <div className="screen">
       <h2>グラフ</h2>
 
-      <CollapsibleSection label="表示設定">
-        <div className="control-group-fields">
-          <label>
-            表示単位
-            <select
-              aria-label="表示単位"
-              value={granularity}
-              onChange={(e) => setGranularity(e.target.value as Granularity)}
-            >
-              {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
-                <option key={key} value={key}>
-                  {GRANULARITY_LABELS[key]}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            移動平均
-            <select
-              aria-label="移動平均"
-              value={movingAveragePreset}
-              onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
-            >
-              {MOVING_AVERAGE_PRESETS.map((preset) => (
-                <option key={preset.value} value={preset.value}>
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {movingAveragePreset === -1 && (
-            <label>
-              期間（日）
-              <input
-                aria-label="移動平均の期間（日）"
-                type="number"
-                min={2}
-                value={customWindow}
-                onChange={(e) => setCustomWindow(Number(e.target.value))}
-              />
-            </label>
-          )}
-
-          <button type="button" onClick={() => setShowTable((v) => !v)}>
-            {showTable ? "グラフで見る" : "表で見る"}
-          </button>
+      <div className="control-group">
+        <div className="control-group-row">
+          <select
+            aria-label="表示単位"
+            value={granularity}
+            onChange={(e) => setGranularity(e.target.value as Granularity)}
+          >
+            {(Object.keys(GRANULARITY_LABELS) as Granularity[]).map((key) => (
+              <option key={key} value={key}>
+                {GRANULARITY_LABELS[key]}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="移動平均"
+            value={movingAveragePreset}
+            onChange={(e) => setMovingAveragePreset(Number(e.target.value))}
+          >
+            {MOVING_AVERAGE_PRESETS.map((preset) => (
+              <option key={preset.value} value={preset.value}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </CollapsibleSection>
+        {movingAveragePreset === -1 && (
+          <input
+            aria-label="移動平均の期間（日）"
+            type="number"
+            min={2}
+            value={customWindow}
+            onChange={(e) => setCustomWindow(Number(e.target.value))}
+          />
+        )}
+      </div>
 
       {numberMetrics.map((metric, index) => {
         const series = seriesByMetricId.get(metric.id) ?? [];
@@ -151,25 +135,6 @@ export function GraphScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
               <p>読み込み中...</p>
             ) : series.length === 0 ? (
               <p>記録がありません。</p>
-            ) : showTable ? (
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>日付</th>
-                      <th>{label}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {series.map((point) => (
-                      <tr key={point.date}>
-                        <td>{point.date}</td>
-                        <td>{formatValue(point.value)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             ) : (
               <div style={{ width: "100%", height: 240 }}>
                 <ResponsiveContainer width="100%" height="100%">
