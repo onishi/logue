@@ -68,8 +68,8 @@ CSV入出力・設定画面に遷移できる。
   UTF-8 BOM 付き CSV としてダウンロード、または CSV ファイルを読み込んで検証結果（不正な行の警告）を
   プレビューしたうえで一括インポートする。エクスポート・インポートで同じ列ヘッダー形式
   （`日付,項目名（単位）,...`）を使うため、書き出したCSVを編集して読み戻す運用が可能
-- **グラフ**（`GraphScreen`）: 数値型の記録項目を時系列グラフ（Recharts）で表示。日別／週別／月別の
-  表示単位切り替え、移動平均（7日/30日/カスタム日数）、グラフ/表ビューの切り替え。Y軸は系列の
+- **グラフ**（`GraphScreen`）: 数値型の記録項目を時系列グラフ（Recharts）で表示。表示設定
+  （日別／週別／月別の表示単位、移動平均〈7日/30日/カスタム日数〉）は常時表示。Y軸は系列の
   最小値〜最大値に対して上下20%の余白を持たせた範囲を自動算出し、最小値が0以上の場合は下限を
   0未満にしない
 - **項目管理**（`MetricManagementScreen`）: 記録項目グループ・記録項目それぞれの追加・改名・削除・
@@ -121,7 +121,8 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 - ドラッグ&ドロップの並び替え（`useDragReorder`）、開閉式の絞り込みセクション（`CollapsibleSection`）
 - CSV エクスポート/インポート（`apps/web/src/lib/csv.ts`, `csvImport.ts`,
   `packages/shared/src/sheetGrid.ts`）
-- GitHub Actions CI（format check / lint / typecheck / test / E2E）
+- GitHub Actions CI（format check / lint / typecheck / test / E2E）と、
+  手動トリガー（`workflow_dispatch`）による本番デプロイワークフロー
 - E2E テスト（Playwright。ログイン→記録項目作成→記録→記録一覧・グラフ確認→CSV入出力の
   主要フローを実ブラウザ・実際の Workers dev サーバー・ローカル D1 で検証。Google OAuth の
   実ログインは自動化できないため、`E2E_TEST_AUTH=1` の環境でのみ有効なテスト専用ログイン
@@ -136,8 +137,7 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 
 ### 未実装（Phase 8 以降、詳細は plan.md）
 
-- ユニットテストカバレッジの再確認
-- 本番環境デプロイ設定の自動化・本番リリース、ドキュメント整備の継続
+- 本番リリース（ユーザー確認の上でデプロイワークフローを実行）
 - Phase 9（将来拡張）: Android アプリ、ウェアラブル/スマート体重計連携、OCR取り込みなど
 
 ## セットアップ
@@ -188,18 +188,20 @@ npm run test:e2e
 
 ## コマンド一覧
 
-| コマンド                                  | 内容                            |
-| ----------------------------------------- | ------------------------------- |
-| `npm run lint`                            | ESLint                          |
-| `npm run format` / `npm run format:check` | Prettier（適用 / チェックのみ） |
-| `npm run typecheck`                       | 各ワークスペースの型チェック    |
-| `npm test`                                | Jest（全ワークスペース）        |
-| `npm run test:e2e`                        | Playwright による E2E テスト    |
-| `npm run dev:web` / `npm run dev:api`     | 開発サーバー起動                |
-| `npm run deploy`                          | 本番デプロイ（API・Web 両方）   |
+| コマンド                                  | 内容                                                    |
+| ----------------------------------------- | ------------------------------------------------------- |
+| `npm run lint`                            | ESLint                                                  |
+| `npm run format` / `npm run format:check` | Prettier（適用 / チェックのみ）                         |
+| `npm run typecheck`                       | 各ワークスペースの型チェック                            |
+| `npm test`                                | Jest（全ワークスペース）                                |
+| `npm run test:e2e`                        | Playwright による E2E テスト                            |
+| `npm run dev:web` / `npm run dev:api`     | 開発サーバー起動                                        |
+| `npm run deploy`                          | 本番デプロイ（API・Web 両方。手元から直接実行する場合） |
 
-CI（GitHub Actions）では push / PR ごとに、`test` ジョブで `format:check` → `lint` →
-`typecheck` → `test` を、`e2e` ジョブで E2E テストを実行する。
+CI（GitHub Actions, `ci.yml`）では push / PR ごとに、`test` ジョブで `format:check` → `lint` →
+`typecheck` → `test` を、`e2e` ジョブで E2E テストを実行する。本番デプロイ
+（`deploy.yml`）は自動実行せず、GitHub の Actions タブから手動（`workflow_dispatch`）で
+実行する（詳細は [docs/secrets.md](./docs/secrets.md) を参照）。
 
 ## 開発ワークフロー
 

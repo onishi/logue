@@ -30,16 +30,32 @@
 
 ## CI（GitHub Actions）
 
-- Cloudflare へのデプロイを CI から行う場合は `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` を
-  GitHub リポジトリの Secrets に登録して利用する（Phase 8 で本番デプロイを自動化する際に整備）
+- 通常の CI（`.github/workflows/ci.yml`）は Cloudflare の認証情報を必要としない
+  （`test`/`e2e` ジョブはローカルの `wrangler dev` ＋ローカル D1 のみで完結する）
+- 本番デプロイ（`.github/workflows/deploy.yml`）だけは Cloudflare へのアクセスが必要なため、
+  `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` を GitHub リポジトリの
+  Settings → Secrets and variables → Actions に登録する
+  - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare ダッシュボード右サイドバーの Account ID
+  - `CLOUDFLARE_API_TOKEN`: Cloudflare ダッシュボード → My Profile → API Tokens で発行。
+    「Edit Cloudflare Workers」テンプレートをベースに、対象アカウントで
+    **Workers Scripts: Edit**・**D1: Edit**・**Cloudflare Pages: Edit** の3権限を持つトークンを作成する
+  - この2つの Secrets は `deploy.yml` の `environment: production` にひもづく想定。GitHub 側で
+    Settings → Environments → production に必須レビュアーを設定すると、ワークフロー実行時に
+    追加の承認ステップを挟める（任意・より安全にしたい場合）
 
-## 本番デプロイ手順（暫定・手動）
+## 本番デプロイ手順
 
-Cloudflare Pages 側は GitHub 連携（Git Provider）を設定していないため、現状は手元から
-`wrangler` で手動デプロイする。Phase 8 で GitHub Actions 経由の自動デプロイに置き換える想定。
+Cloudflare Pages 側は GitHub 連携（Git Provider）を設定していないため、GitHub Actions の
+`deploy` ワークフローから `wrangler` 経由でデプロイする。AGENTS.md の方針により
+**本番リリースは必ずユーザー確認の上で実施する**ため、`push` 等での自動トリガーは行わず、
+GitHub の Actions タブから `Deploy` ワークフローを **手動実行（Run workflow）** する
+方式にしている（`workflow_dispatch` のみ）。手動実行時も、実際のデプロイ前に
+`format:check`/`lint`/`typecheck`/テスト一式を通してから実行する。
 
-リポジトリルートから1コマンドで API・Web 両方をデプロイできる（内部で `wrangler` に
-`--config`/ワークスペース指定を渡しているため `cd` は不要）。
+手元から直接デプロイしたい場合（ワークフローを使わない場合）は、リポジトリルートから
+1コマンドで API・Web 両方をデプロイできる（内部で `wrangler` に `--config`/ワークスペース指定を
+渡しているため `cd` は不要）。ローカル実行には別途 `wrangler login` 済みであるか、
+`CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` を環境変数で渡す必要がある。
 
 ```bash
 npm run deploy
