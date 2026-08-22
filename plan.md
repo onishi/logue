@@ -265,16 +265,19 @@ metric として作成する想定。
 ## Phase 9（将来拡張・別プロジェクトフェーズとして着手）
 
 - [ ] Android アプリ開発（既存 API をそのまま利用、Kotlin/Compose 想定。issue #27）
-  - `android/` ディレクトリに着手。ログイン・記録する・記録一覧・項目管理・CSV入出力・
-    設定（テーマのみ）まで実装。詳細は `android/README.md` を参照。**開発サンドボックスに
-    Android SDKがなく、ビルド・実機/エミュレータでの動作確認は未実施**（ユーザーがAndroid
-    Studioで確認する必要がある）
+  - `android/` ディレクトリに着手。ログイン・記録する・記録一覧・グラフ・項目管理・
+    CSV入出力・設定（テーマのみ）まで実装（Web版と同じ下部タブ4画面+ユーザーメニュー構成）。
+    詳細は `android/README.md` を参照。**開発サンドボックスにAndroid SDKがなく、ビルド・
+    実機/エミュレータでの動作確認は未実施**（ユーザーがAndroid Studioで確認する必要がある）
   - CSV入出力は Web版の `packages/shared/src/sheetGrid.ts`（グリッド構築・パース）と
     `apps/web/src/lib/csv.ts`（CSVエスケープ）をKotlinに移植し、書式をWeb版と揃えた
     （Storage Access Frameworkでファイル読み書き）
+  - グラフは Web版の `apps/web/src/lib/graphData.ts` のうち `toDailySeries`/
+    `movingAverage`/`computeYAxisDomain` を移植し、外部チャートライブラリを使わず
+    Compose標準の `Canvas` で折れ線グラフを自前描画（週別/月別集約・表ビューは未対応）
   - 設定は `/api/user-settings` をWeb版と共用するため、テーマ設定はWeb/Android間で同期する
-  - 残るのはグラフ（Compose用チャートライブラリの選定が必要）、choice型記録項目のピッカーUI、
-    Googleスプレッドシート連携（アプリ内OAuthフローの実装が必要）
+  - 残るのは choice型記録項目のピッカーUI、Googleスプレッドシート連携
+    （アプリ内OAuthフローの実装が必要）
   - バックエンド側は `POST /api/auth/mobile-login`（Credential Manager の Sign in with Google
     で取得したIDトークンを検証してセッションCookieを発行）のみ追加。既存のセッション機構
     （Cookie）・CORS・CSRFヘッダーの仕組みはWeb版と共用でき、変更不要だった

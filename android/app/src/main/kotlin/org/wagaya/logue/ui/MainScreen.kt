@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -30,12 +31,14 @@ import org.wagaya.logue.network.ApiService
 import org.wagaya.logue.ui.csv.CsvScreen
 import org.wagaya.logue.ui.entry.EntryScreen
 import org.wagaya.logue.ui.entrylist.EntryListScreen
+import org.wagaya.logue.ui.graph.GraphScreen
 import org.wagaya.logue.ui.metrics.MetricManagementScreen
 import org.wagaya.logue.ui.settings.SettingsScreen
 
 private enum class BottomTab(val label: String, val icon: ImageVector) {
     Entry("記録する", Icons.Filled.Add),
     EntryList("記録一覧", Icons.Filled.List),
+    Graph("グラフ", Icons.Filled.Info),
     Metrics("項目管理", Icons.Filled.Edit),
 }
 
@@ -48,7 +51,8 @@ private sealed interface Screen {
 /**
  * Web版の App.tsx（activeTab による画面切り替え）に相当。ネストした NavHost は使わず、
  * シンプルな状態で画面を切り替える（Web版と同じ方針）。Web版と同様、下部タブは
- * 記録する/記録一覧/項目管理の3つのみとし、CSV入出力・設定は右上のメニューから開く。
+ * 記録する/記録一覧/グラフ/項目管理の4つとし（Web版と同じ構成）、CSV入出力・設定は
+ * 右上のメニューから開く。
  */
 @Composable
 fun MainScreen(
@@ -117,6 +121,7 @@ fun MainScreen(
                 is Screen.Bottom -> when (current.tab) {
                     BottomTab.Entry -> EntryScreen(apiService = apiService)
                     BottomTab.EntryList -> EntryListScreen(apiService = apiService)
+                    BottomTab.Graph -> GraphScreen(apiService = apiService)
                     BottomTab.Metrics -> MetricManagementScreen(apiService = apiService)
                 }
                 Screen.Csv -> CsvScreen(apiService = apiService)
