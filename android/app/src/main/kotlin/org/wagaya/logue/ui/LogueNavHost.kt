@@ -13,12 +13,17 @@ private const val ROUTE_LOGIN = "login"
 private const val ROUTE_MAIN = "main"
 
 /**
- * Phase B のナビゲーション。「ログイン」と、下部タブ3つ（記録する/記録一覧/項目管理）を持つ
- * 「メイン」の2ルートのみ。タブ切り替え自体は MainScreen 内のローカル状態で行う
- * （ネストした NavHost にはしない）。グラフ・CSV・設定は Phase C で追加する。
+ * 「ログイン」と、下部タブ4つ（記録する/記録一覧/項目管理/設定）を持つ「メイン」の2ルートのみ。
+ * タブ切り替え自体は MainScreen 内のローカル状態で行う（ネストした NavHost にはしない）。
+ * グラフ・CSVは未対応（今後追加予定）。
  */
 @Composable
-fun LogueNavHost(authRepository: AuthRepository, apiService: ApiService) {
+fun LogueNavHost(
+    authRepository: AuthRepository,
+    apiService: ApiService,
+    themeSetting: String,
+    onThemeSettingChange: (String) -> Unit,
+) {
     val navController: NavHostController = rememberNavController()
     val startDestination = if (authRepository.isSignedIn) ROUTE_MAIN else ROUTE_LOGIN
 
@@ -37,6 +42,8 @@ fun LogueNavHost(authRepository: AuthRepository, apiService: ApiService) {
             MainScreen(
                 authRepository = authRepository,
                 apiService = apiService,
+                themeSetting = themeSetting,
+                onThemeSettingChange = onThemeSettingChange,
                 onSignedOut = {
                     navController.navigate(ROUTE_LOGIN) {
                         popUpTo(ROUTE_MAIN) { inclusive = true }
