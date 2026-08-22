@@ -9,7 +9,9 @@ import org.wagaya.logue.network.dto.MetricGroup
 import org.wagaya.logue.network.dto.MobileLoginRequest
 import org.wagaya.logue.network.dto.UpdateMetricGroupInput
 import org.wagaya.logue.network.dto.UpdateMetricInput
+import org.wagaya.logue.network.dto.UpdateUserSettingsInput
 import org.wagaya.logue.network.dto.User
+import org.wagaya.logue.network.dto.UserSettings
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -68,4 +70,10 @@ interface ApiService {
 
     @POST("api/entries")
     suspend fun createEntry(@Body body: CreateEntryInput): Entry
+
+    @GET("api/user-settings")
+    suspend fun getUserSettings(): UserSettings
+
+    @PATCH("api/user-settings")
+    suspend fun updateUserSettings(@Body body: UpdateUserSettingsInput): UserSettings
 }

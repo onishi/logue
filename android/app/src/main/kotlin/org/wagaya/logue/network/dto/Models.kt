@@ -91,3 +91,13 @@ data class UpdateMetricInput(
     val isArchived: Boolean? = null,
     val choiceOptions: List<ChoiceOptionInput>? = null,
 )
+
+@Serializable
+data class UserSettings(
+    val theme: String, // "system" | "light" | "dark"
+)
+
+@Serializable
+data class UpdateUserSettingsInput(
+    val theme: String? = null,
+)

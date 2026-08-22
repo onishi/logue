@@ -15,11 +15,21 @@ private val AccentDark = Color(0xFF7FD9C4)
 private val LightColors = lightColorScheme(primary = AccentLight)
 private val DarkColors = darkColorScheme(primary = AccentDark)
 
+/**
+ * themeSetting は Web版の ThemeSetting（"system" | "light" | "dark"、
+ * packages/shared/src/types/userSettings.ts）と同じ値をそのまま受け取る。
+ * ログイン前・設定未取得の間は "system" として端末設定に従う。
+ */
 @Composable
 fun LogueTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeSetting: String = "system",
     content: @Composable () -> Unit,
 ) {
+    val darkTheme = when (themeSetting) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
     val colorScheme = if (darkTheme) DarkColors else LightColors
     MaterialTheme(colorScheme = colorScheme, content = content)
 }
