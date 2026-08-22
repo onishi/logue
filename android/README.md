@@ -3,15 +3,19 @@
 Web版（`apps/web`）・API（`apps/api`）と同じ Cloudflare Workers REST API をそのまま利用する、
 Kotlin + Jetpack Compose のネイティブアプリ。
 
-## 現在の実装状況（Phase A）
+## 現在の実装状況（Phase B まで）
 
-issue #27（Phase 9: 将来拡張）の一部として着手した最小構成。
+issue #27（Phase 9: 将来拡張）の一部として着手。
 
 - ログイン（Credential Manager の Sign in with Google → `POST /api/auth/mobile-login`）
-- 記録する画面のみ（今日の日付固定、記録項目のグループ分け・日付ページャーなし）
+- 下部タブ3つ: 記録する（今日の日付固定、日付ページャーなし）／記録一覧（ピボットテーブル、
+  絞り込みなし）／項目管理（グループ・記録項目のCRUD。ドラッグ並び替え・「未分類」への
+  付け替えは未対応）
+- ログアウト（上部バーのボタン）
 
-記録一覧・グラフ・項目管理・CSV・設定は未実装（Phase B/C で追加予定。詳細は `plan.md` の
-Phase 9 セクションを参照）。
+choice型の記録項目は、記録する画面では自由入力（選択肢ラベルと完全一致する文字列を入力する
+必要がある）のままで、専用のピッカーUIは未実装。グラフ・CSV・設定は未実装（Phase C で追加予定。
+詳細は `plan.md` の Phase 9 セクションを参照）。
 
 **注意**: このプロジェクトは開発時、Android SDK が利用できないサンドボックス環境で
 Kotlin/Gradle のソースコードのみを作成したものです。**ビルド・実機/エミュレータでの
