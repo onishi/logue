@@ -125,6 +125,118 @@ describe("Google OAuth flow", () => {
   });
 });
 
+describe("POST /api/auth/mobile-login (Androidアプリからのログイン)", () => {
+  let fetchSpy: jest.SpiedFunction<typeof fetch>;
+  let tokeninfoResponse: { status: number; body: unknown };
+
+  beforeEach(() => {
+    tokeninfoResponse = {
+      status: 200,
+      body: {
+        sub: "google-sub-mobile-1",
+        email: "hanako@example.com",
+        email_verified: "true",
+        aud: "test-client-id",
+        name: "Hanako",
+        picture: "https://example.com/hanako.png",
+      },
+    };
+    fetchSpy = jest.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.startsWith("https://oauth2.googleapis.com/tokeninfo")) {
+        return new Response(JSON.stringify(tokeninfoResponse.body), {
+          status: tokeninfoResponse.status,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected fetch to ${url}`);
+    });
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  function postMobileLogin(env: ReturnType<typeof createTestEnv>, idToken = "fake-id-token") {
+    return app.request(
+      "/api/auth/mobile-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      },
+      env,
+    );
+  }
+
+  it("issues a session cookie for a valid ID token whose audience matches GOOGLE_CLIENT_ID", async () => {
+    const env = createTestEnv();
+    const res = await postMobileLogin(env);
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      id: expect.any(String),
+      email: "hanako@example.com",
+      name: "Hanako",
+      pictureUrl: "https://example.com/hanako.png",
+    });
+    const sessionCookie = findSetCookie(res, "logue_session");
+    expect(sessionCookie).toBeDefined();
+
+    const meRes = await app.request(
+      "/api/auth/me",
+      { headers: { Cookie: cookiePair(sessionCookie ?? "") } },
+      env,
+    );
+    expect(meRes.status).toBe(200);
+  });
+
+  it("reuses the same user on repeated logins with the same Google sub", async () => {
+    const env = createTestEnv();
+    const first = await postMobileLogin(env);
+    const second = await postMobileLogin(env);
+
+    expect(((await first.json()) as { id: string }).id).toBe(
+      ((await second.json()) as { id: string }).id,
+    );
+  });
+
+  it("rejects when the ID token's audience does not match GOOGLE_CLIENT_ID", async () => {
+    tokeninfoResponse.body = { ...(tokeninfoResponse.body as object), aud: "someone-elses-app" };
+    const env = createTestEnv();
+    const res = await postMobileLogin(env);
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects when the email is not verified", async () => {
+    tokeninfoResponse.body = { ...(tokeninfoResponse.body as object), email_verified: "false" };
+    const env = createTestEnv();
+    const res = await postMobileLogin(env);
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects when Google reports the token as invalid", async () => {
+    tokeninfoResponse = { status: 400, body: { error: "invalid_token" } };
+    const env = createTestEnv();
+    const res = await postMobileLogin(env);
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects a request without an idToken", async () => {
+    const env = createTestEnv();
+    const res = await app.request(
+      "/api/auth/mobile-login",
+      {
+        method: "POST",
+        headers: { ...CSRF_TEST_HEADERS, "Content-Type": "application/json" },
+        body: "{}",
+      },
+      env,
+    );
+    expect(res.status).toBe(400);
+  });
+});
+
 describe("POST /api/auth/test-login (E2Eテスト用ログインバイパス)", () => {
   it("is disabled by default (E2E_TEST_AUTH is unset)", async () => {
     const env = createTestEnv();

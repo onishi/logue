@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose が独自にテーマを適用する（ui/theme/Theme.kt）ため、ここでは
+         Activity 起動前のスプラッシュ用に最低限の Material テーマを与えるだけでよい。 -->
+    <style name="Theme.Logue" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

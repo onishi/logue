@@ -14,3 +14,12 @@ playwright/.cache
 .dev.vars.*
 !.dev.vars.example
 .DS_Store
+
+# android/（Kotlin/Gradleプロジェクト。apps/*配下ではなくルート直下、npm workspacesの対象外）
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/.cxx/
+android/captures/

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/vector"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 仮のプレースホルダーアイコン（中央の白い円）。デザインが決まったら差し替える。 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M21,54 A33,33 0 1 1 87,54 A33,33 0 1 1 21,54 Z" />
+</vector>
