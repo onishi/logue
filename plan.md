@@ -197,7 +197,11 @@ metric として作成する想定。
 
 ## Phase 8: テスト・品質保証・本番リリース
 
-- [ ] ユニットテストカバレッジ >80% 達成確認
+- [x] ユニットテストカバレッジ >80% 達成確認
+  - 2026-08-16時点で再計測。全体 Statements 92.28% / Branch 83.44% / Functions 86.7% /
+    Lines 94.3%（`npx jest --coverage`）。すべての指標で目標を上回っている
+    （`apps/web/src/lib/ripple.ts` のみ未カバーだが、タップ時のリップル演出専用の
+    ユーティリティで影響軽微）
 - [x] E2E テスト（主要フロー: ログイン→記録→グラフ確認。issue #71）
   - Playwright を導入し、実際のブラウザ・実際の `wrangler dev`（Workers）・ローカル D1 を
     使う `e2e/` テストを追加（ログイン→記録項目・グループ作成→記録する→記録一覧の
@@ -236,18 +240,21 @@ metric として作成する想定。
     ローカル開発サーバーにのみ影響するため、`wrangler` のメジャーバージョン更新を
     伴う対応は別途慎重に行う（本番のCloudflare Workersランタイムは影響を受けない）
 - [x] Cloudflare Pages / Workers 本番環境デプロイ設定
-  - `logue-web`（Cloudflare Pages）・`logue-api`（Cloudflare Workers）に加え、
-    公開URLとして `wagaya.org/logue` を採用。`wagaya.org` のリバースプロキシ Worker
-    （別リポジトリ `onishi/wagaya.org`）が `/logue` プレフィックスを剥がして
-    `logue-web.pages.dev` に転送する構成
-  - フロントエンドは `wagaya.org/logue` 配下で動く前提で vite の `base` を `/logue/` に
-    固定（`apps/web/src/lib/basePath.ts` の `APP_BASE` が唯一のソース。PWA manifest・
-    画面遷移パス・アイコン参照もすべてここから導出）。直接 `logue-web.pages.dev` に
-    アクセスした場合はアセットのパスが `/logue` 前提のため動かない
-  - API側は CORS許可オリジン（`WEB_ORIGIN`）とログイン後リダイレクト先
-    （`WEB_APP_URL`、`/logue` パスを含む）を分離して両方 `wagaya.org` 基準に変更
+  - `logue-web`（Cloudflare Pages）・`logue-api`（Cloudflare Workers）を、専用サブドメイン
+    `logue.wagaya.org` を Cloudflare Pages の Custom Domain として割り当てて公開
+    （当初 `wagaya.org/logue` のパス配下・リバースプロキシ構成だったが、後にサブドメイン
+    直接配信へ移行）
+  - フロントエンドはサブドメインのルートで動くため vite の `base` は `/`
+    （`apps/web/src/lib/basePath.ts` の `APP_BASE` が唯一のソース）
+  - API側は CORS許可オリジン（`WEB_ORIGIN`）とログイン後リダイレクト先（`WEB_APP_URL`）を
+    `logue.wagaya.org` 基準に設定
+  - GitHub Actions のワークフロー（`.github/workflows/deploy.yml`、issue #26）から
+    `npm run deploy` を実行できるようにした。AGENTS.md の方針（本番リリースは必ず
+    ユーザー確認の上で実施）に沿って `workflow_dispatch`（Actionsタブからの手動実行）のみに
+    限定し、push等での自動デプロイは行わない。実行には `CLOUDFLARE_API_TOKEN`/
+    `CLOUDFLARE_ACCOUNT_ID` のSecrets登録が必要
   - 詳細は [docs/secrets.md](./docs/secrets.md) を参照
-- [x] 本番リリース（ユーザー確認の上でデプロイ済み。`https://wagaya.org/logue`）
+- [x] 本番リリース（ユーザー確認の上でデプロイ済み。`https://logue.wagaya.org`）
 - [x] ドキュメント整備（README, docs/ 更新。issue #70。README.md を現在の画面構成
       （CSV入出力の別画面化・ドラッグ&ドロップ並び替え・グラフのY軸自動調整など）と
       Phase 7 完了内容に合わせて更新し、デプロイ手順へのリンクを追加。
