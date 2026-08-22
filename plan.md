@@ -264,7 +264,14 @@ metric として作成する想定。
 
 ## Phase 9（将来拡張・別プロジェクトフェーズとして着手）
 
-- [ ] Android アプリ開発（既存 API をそのまま利用、Kotlin/Compose 想定）
+- [ ] Android アプリ開発（既存 API をそのまま利用、Kotlin/Compose 想定。issue #27）
+  - Phase A（ログイン・記録する画面のみ）を `android/` ディレクトリに着手。詳細は
+    `android/README.md` を参照。**開発サンドボックスにAndroid SDKがなく、ビルド・実機/
+    エミュレータでの動作確認は未実施**。実装フェーズはユーザーがAndroid Studioで確認しながら
+    Phase B（記録一覧・項目管理）→ Phase C（グラフ・CSV・設定）と進める想定
+  - バックエンド側は `POST /api/auth/mobile-login`（Credential Manager の Sign in with Google
+    で取得したIDトークンを検証してセッションCookieを発行）のみ追加。既存のセッション機構
+    （Cookie）・CORS・CSRFヘッダーの仕組みはWeb版と共用でき、変更不要だった
 - [ ] Huawei Watch 連携（Huawei Health Kit / Bluetooth 連携方式の調査含む）
 - [ ] Anker 体重計連携（Bluetooth/公式 API の有無調査、データ自動取り込み）
 - [ ] スクリーンショットからのデータ取り込み（OCR/画像解析によるメトリクス自動入力）

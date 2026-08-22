@@ -2,6 +2,7 @@ const GOOGLE_AUTHORIZATION_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/a
 const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
 const GOOGLE_REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke";
+const GOOGLE_TOKENINFO_ENDPOINT = "https://oauth2.googleapis.com/tokeninfo";
 
 export type GoogleUserInfo = {
   sub: string;
@@ -94,6 +95,33 @@ export async function revokeGoogleToken(token: string): Promise<void> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ token }),
   });
+}
+
+export type GoogleIdTokenClaims = {
+  sub: string;
+  email: string;
+  email_verified: string; // Google のレスポンスでは真偽値ではなく文字列 "true"/"false" で返る
+  aud: string;
+  name?: string;
+  picture?: string;
+};
+
+/**
+ * Android アプリ（Credential Manager の Sign in with Google）から送られてくる ID トークンを
+ * 検証する。JWT/JWKS の自前検証は行わず、既存コードと同じ「Googleのエンドポイントにfetchして
+ * 結果を信頼する」スタイルに揃える（個人利用規模のアプリのため tokeninfo のレート制限も
+ * 問題にならない）。呼び出し側で aud（audience）の一致・email_verified を確認すること。
+ */
+export async function verifyGoogleIdToken(idToken: string): Promise<GoogleIdTokenClaims> {
+  const url = new URL(GOOGLE_TOKENINFO_ENDPOINT);
+  url.searchParams.set("id_token", idToken);
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Google IDトークンの検証に失敗しました: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 export async function fetchGoogleUserInfo(accessToken: string): Promise<GoogleUserInfo> {

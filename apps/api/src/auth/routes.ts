@@ -7,6 +7,7 @@ import {
   buildGoogleAuthorizationUrl,
   exchangeGoogleCodeForTokens,
   fetchGoogleUserInfo,
+  verifyGoogleIdToken,
 } from "./google";
 import { requireAuth, type AuthVariables } from "./middleware";
 import { clearSessionCookie, writeSessionCookie } from "./session";
@@ -79,6 +80,46 @@ auth.get("/callback", async (c) => {
   await writeSessionCookie(c, c.env.SESSION_SECRET, userRow.id);
 
   return c.redirect(c.env.WEB_APP_URL);
+});
+
+/**
+ * Android アプリ（Credential Manager の Sign in with Google）からのログイン。
+ * ブラウザのフルページ遷移を前提とした /login・/callback とは別に、ネイティブアプリが
+ * 直接取得した Google ID トークンを受け取ってセッションを発行する。
+ * serverClientId には既存の（ウェブアプリケーション種別の）GOOGLE_CLIENT_ID をそのまま使う
+ * 想定のため、追加の環境変数は不要。
+ */
+auth.post("/mobile-login", async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const idToken = body && typeof body === "object" ? (body as { idToken?: unknown }).idToken : null;
+  if (typeof idToken !== "string" || !idToken) {
+    return c.json({ error: "invalid_request" }, 400);
+  }
+
+  let claims: Awaited<ReturnType<typeof verifyGoogleIdToken>>;
+  try {
+    claims = await verifyGoogleIdToken(idToken);
+  } catch {
+    return c.json({ error: "invalid_id_token" }, 401);
+  }
+
+  if (claims.aud !== c.env.GOOGLE_CLIENT_ID || claims.email_verified !== "true") {
+    return c.json({ error: "invalid_id_token" }, 401);
+  }
+
+  let userRow = await findUserByGoogleSub(c.env.DB, claims.sub);
+  if (!userRow) {
+    userRow = await createUser(c.env.DB, {
+      googleSub: claims.sub,
+      email: claims.email,
+      name: claims.name ?? null,
+      pictureUrl: claims.picture ?? null,
+    });
+  }
+
+  await writeSessionCookie(c, c.env.SESSION_SECRET, userRow.id);
+
+  return c.json(toPublicUser(userRow));
 });
 
 /**
