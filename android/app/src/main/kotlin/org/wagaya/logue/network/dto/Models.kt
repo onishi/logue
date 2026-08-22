@@ -58,3 +58,36 @@ data class CreateEntryInput(
 data class MobileLoginRequest(
     val idToken: String,
 )
+
+@Serializable
+data class CreateMetricGroupInput(
+    val name: String,
+)
+
+@Serializable
+data class UpdateMetricGroupInput(
+    val name: String? = null,
+)
+
+@Serializable
+data class ChoiceOptionInput(
+    val label: String,
+)
+
+@Serializable
+data class CreateMetricInput(
+    val metricGroupId: String? = null,
+    val name: String,
+    val type: String,
+    val unit: String? = null,
+    val choiceOptions: List<ChoiceOptionInput>? = null,
+)
+
+@Serializable
+data class UpdateMetricInput(
+    val metricGroupId: String? = null,
+    val name: String? = null,
+    val unit: String? = null,
+    val isArchived: Boolean? = null,
+    val choiceOptions: List<ChoiceOptionInput>? = null,
+)
