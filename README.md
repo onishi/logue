@@ -122,7 +122,7 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 - CSV エクスポート/インポート（`apps/web/src/lib/csv.ts`, `csvImport.ts`,
   `packages/shared/src/sheetGrid.ts`）
 - GitHub Actions CI（format check / lint / typecheck / test / E2E）と、
-  手動トリガー（`workflow_dispatch`）による本番デプロイワークフロー
+  `main` のCI成功後にCloudflare Workers / Pagesへ自動反映する本番デプロイワークフロー
 - E2E テスト（Playwright。ログイン→記録項目作成→記録→記録一覧・グラフ確認→CSV入出力の
   主要フローを実ブラウザ・実際の Workers dev サーバー・ローカル D1 で検証。Google OAuth の
   実ログインは自動化できないため、`E2E_TEST_AUTH=1` の環境でのみ有効なテスト専用ログイン
@@ -137,7 +137,6 @@ Googleスプレッドシートで入出力する」という一連の操作が�
 
 ### 未実装（Phase 8 以降、詳細は plan.md）
 
-- 本番リリース（ユーザー確認の上でデプロイワークフローを実行）
 - Phase 9（将来拡張）: Android アプリ、ウェアラブル/スマート体重計連携、OCR取り込みなど
 
 ## セットアップ
@@ -199,9 +198,9 @@ npm run test:e2e
 | `npm run deploy`                          | 本番デプロイ（API・Web 両方。手元から直接実行する場合） |
 
 CI（GitHub Actions, `ci.yml`）では push / PR ごとに、`test` ジョブで `format:check` → `lint` →
-`typecheck` → `test` を、`e2e` ジョブで E2E テストを実行する。本番デプロイ
-（`deploy.yml`）は自動実行せず、GitHub の Actions タブから手動（`workflow_dispatch`）で
-実行する（詳細は [docs/secrets.md](./docs/secrets.md) を参照）。
+`typecheck` → `test` を、`e2e` ジョブで E2E テストを実行する。`main` への push でCI全体が
+成功すると、本番デプロイ（`deploy.yml`）が対象コミットをCloudflare Workers / Pagesへ自動反映する。
+必要に応じてActionsタブから手動実行もできる（詳細は [docs/secrets.md](./docs/secrets.md) を参照）。
 
 ## 開発ワークフロー
 
