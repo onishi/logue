@@ -39,18 +39,19 @@
   - `CLOUDFLARE_API_TOKEN`: Cloudflare ダッシュボード → My Profile → API Tokens で発行。
     「Edit Cloudflare Workers」テンプレートをベースに、対象アカウントで
     **Workers Scripts: Edit**・**D1: Edit**・**Cloudflare Pages: Edit** の3権限を持つトークンを作成する
-  - この2つの Secrets は `deploy.yml` の `environment: production` にひもづく想定。GitHub 側で
-    Settings → Environments → production に必須レビュアーを設定すると、ワークフロー実行時に
-    追加の承認ステップを挟める（任意・より安全にしたい場合）
+  - この2つの Secrets は `deploy.yml` の `environment: production` にひもづける。完全な自動
+    デプロイにする場合、Settings → Environments → production に必須レビュアーを設定しないこと。
+    必須レビュアーを設定すると、自動起動後に承認待ちとなる
 
 ## 本番デプロイ手順
 
 Cloudflare Pages 側は GitHub 連携（Git Provider）を設定していないため、GitHub Actions の
-`deploy` ワークフローから `wrangler` 経由でデプロイする。AGENTS.md の方針により
-**本番リリースは必ずユーザー確認の上で実施する**ため、`push` 等での自動トリガーは行わず、
-GitHub の Actions タブから `Deploy` ワークフローを **手動実行（Run workflow）** する
-方式にしている（`workflow_dispatch` のみ）。手動実行時も、実際のデプロイ前に
-`format:check`/`lint`/`typecheck`/テスト一式を通してから実行する。
+`deploy` ワークフローから `wrangler` 経由でデプロイする。`main` へのpushを対象にした `CI`
+ワークフローがすべて成功すると、`workflow_run` を通じて成功したコミットSHAをチェックアウトし、
+APIのD1マイグレーション適用・Workersデプロイ・Webビルド・Pagesデプロイを順に自動実行する。
+CI失敗時やPull RequestのCIではデプロイしない。連続実行は `production-deploy` concurrency groupで
+直列化する。必要に応じてGitHubのActionsタブから `Deploy` ワークフローを手動実行でき、
+手動実行時もデプロイ前に `format:check` / `lint` / `typecheck` / Jestを通す。
 
 手元から直接デプロイしたい場合（ワークフローを使わない場合）は、リポジトリルートから
 1コマンドで API・Web 両方をデプロイできる（内部で `wrangler` に `--config`/ワークスペース指定を

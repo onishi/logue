@@ -1,16 +1,32 @@
 name: Deploy
 
-# 本番デプロイは GitHub Actions の「Run workflow」から手動で実行する（AGENTS.md の方針により、
-# 本番リリースは必ずユーザー確認の上で実施するため、push への自動トリガーは設定しない）。
 on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
