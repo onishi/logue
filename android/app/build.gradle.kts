@@ -20,7 +20,7 @@ android {
         // local.properties に API_BASE_URL=http://10.0.2.2:8787 のように書いて上書きする
         // （エミュレータからホストの localhost には 10.0.2.2 でアクセスする）。
         // Retrofit の Retrofit.Builder#baseUrl は末尾に "/" が必須のため、必ず付けること。
-        buildConfigField("String", "API_BASE_URL", "\"https://logue-api.anison.workers.dev/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://logue-api.wagaya.workers.dev/\"")
         // Credential Manager の Sign in with Google に渡す serverClientId。
         // 既存の（ウェブアプリケーション種別の）GOOGLE_CLIENT_ID をそのまま使う。
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"\"")

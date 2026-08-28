@@ -70,14 +70,14 @@ npx wrangler d1 migrations apply logue-db --remote --config apps/api/wrangler.to
 npx wrangler deploy --config apps/api/wrangler.toml
 
 # Web（Cloudflare Pages）: 本番 API の URL を指定してビルド → デプロイ
-echo "VITE_API_BASE_URL=https://logue-api.anison.workers.dev" > apps/web/.env.production
+echo "VITE_API_BASE_URL=https://logue-api.wagaya.workers.dev" > apps/web/.env.production
 npm run build --workspace apps/web
 npx wrangler pages deploy apps/web/dist --project-name logue-web
 ```
 
 - 本番 URL: Web = `https://logue.wagaya.org`（実体は Cloudflare Pages プロジェクト
   `logue-web` に Custom Domain として割り当てて配信) /
-  API = `https://logue-api.anison.workers.dev`
+  API = `https://logue-api.wagaya.workers.dev`
 - `.env.production` は `.gitignore` の `.env.*` に含まれるため commit されない。デプロイのたびに
   上記のとおり手元で生成する
 - 本番の `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` は [google-oauth-setup.md](./google-oauth-setup.md)
