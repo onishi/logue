@@ -14,7 +14,7 @@
     "dev:web": "npm run dev --workspace apps/web",
     "dev:api": "npm run dev --workspace apps/api",
     "deploy:api": "npx wrangler d1 migrations apply logue-db --remote --config apps/api/wrangler.toml && npx wrangler deploy --config apps/api/wrangler.toml",
-    "deploy:web": "echo VITE_API_BASE_URL=https://logue-api.anison.workers.dev > apps/web/.env.production && npm run build --workspace apps/web && npx wrangler pages deploy apps/web/dist --project-name logue-web",
+    "deploy:web": "echo VITE_API_BASE_URL=https://logue-api.wagaya.workers.dev > apps/web/.env.production && npm run build --workspace apps/web && npx wrangler pages deploy apps/web/dist --project-name logue-web",
     "deploy": "npm run deploy:api && npm run deploy:web",
     "pretest:e2e": "node e2e/setup-env.mjs && npx wrangler d1 migrations apply logue-db --local --config apps/api/wrangler.toml",
     "test:e2e": "playwright test"
