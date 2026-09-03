@@ -161,9 +161,6 @@ export function SettingsScreen({
         ))}
       </fieldset>
       <SheetsConnectionSection apiBaseUrl={apiBaseUrl} />
-      <footer className="settings-footer">
-        <a href="https://wagaya.org/">wagaya.org</a>
-      </footer>
     </div>
   );
 }

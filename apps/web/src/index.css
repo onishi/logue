@@ -430,16 +430,6 @@ p {
   box-sizing: border-box;
 }
 
-.settings-footer {
-  font-size: 13px;
-}
-
-.settings-footer a {
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
 .date-pager {
   display: flex;
   align-items: center;
