@@ -9,6 +9,7 @@ import { syncUserSheets } from "./googleSheets/sync";
 import metricGroupsRoutes from "./metricGroups/routes";
 import metricsRoutes from "./metrics/routes";
 import userSettingsRoutes from "./userSettings/routes";
+import { checkHealth } from "./monitor-health";
 import type { AuthVariables } from "./auth/middleware";
 import type { Env } from "./env";
 
@@ -23,6 +24,7 @@ app.use("/api/*", (c, next) =>
 app.use("/api/*", requireCsrfHeader);
 
 app.get("/api/health", (c) => c.json({ status: "ok" }));
+app.get("/_monitor/health", (c) => checkHealth(c.env));
 
 app.route("/api/auth", authRoutes);
 app.route("/api/metric-groups", metricGroupsRoutes);
