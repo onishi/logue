@@ -59,4 +59,37 @@ describe("useEntries", () => {
     rerender({ metricId: "m2" });
     await waitFor(() => expect(result.current.entries.map((e) => e.id)).toEqual(["e2"]));
   });
+
+  it("ignores a stale response that arrives after the filter has changed", async () => {
+    server.entries.push(
+      { id: "e1", metricId: "m1", value: "1", recordedAt: "2026-07-01" },
+      { id: "e2", metricId: "m2", value: "2", recordedAt: "2026-07-02" },
+    );
+
+    // 最初の絞り込み（m1）のレスポンスだけを遅らせ、後から発行した m2 のレスポンスより後に届かせる
+    let releaseFirst!: () => void;
+    const firstGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const baseFetch = server.fetchMock;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("metricId=m1")) await firstGate;
+      return baseFetch(input, init);
+    }) as typeof fetch;
+
+    const { result, rerender } = renderHook(
+      ({ metricId }) => useEntries(API_BASE_URL, { metricId }),
+      { initialProps: { metricId: "m1" } },
+    );
+    rerender({ metricId: "m2" });
+    await waitFor(() => expect(result.current.status).toBe("loaded"));
+    expect(result.current.entries.map((e) => e.id)).toEqual(["e2"]);
+
+    await act(async () => {
+      releaseFirst();
+      await firstGate;
+    });
+    expect(result.current.status).toBe("loaded");
+    expect(result.current.entries.map((e) => e.id)).toEqual(["e2"]);
+  });
 });
