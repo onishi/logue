@@ -1,5 +1,5 @@
 import type { Metric, MetricGroup } from "@logue/shared";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { useEntries } from "../../hooks/useEntries";
 import { useMetricGroups } from "../../hooks/useMetricGroups";
@@ -46,15 +46,17 @@ export function EntryFormScreen({
   // 選択中の日付にすでに記録済みの値をフォームへ反映する（同じ項目・同じ日は上書き保存になる）。
   // 取得中は入力欄を disabled にしておき、読み込み完了前にユーザーが入力した内容を
   // この反映処理が上書きしてしまわないようにする。
-  useEffect(() => {
-    if (entriesStatus !== "loaded") return;
+  // useEffect で反映すると、入力欄が有効になってから反映されるまでの間に入力した内容が
+  // 消えてしまうため、レンダー中に反映する。
+  const [syncedEntries, setSyncedEntries] = useState<typeof entries | null>(null);
+  if (entriesStatus === "loaded" && syncedEntries !== entries) {
     const next: Record<string, string> = {};
     for (const entry of entries) {
       next[entry.metricId] = entry.value;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSyncedEntries(entries);
     setValues(next);
-  }, [entries, entriesStatus]);
+  }
 
   const inputsDisabled = entriesStatus === "loading" || submitting;
 
