@@ -33,13 +33,22 @@ export async function checkHealth(env: Env): Promise<Response> {
   let webStatus: "ok" | "critical" = "ok";
   let webMessage = "D1への疎通に成功";
   try {
-    const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM users").first<{ count: number }>();
+    const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM users").first<{
+      count: number;
+    }>();
     if (!row) throw new Error("クエリ結果が空です");
   } catch (err) {
     webStatus = "critical";
     webMessage = `D1への疎通に失敗: ${err instanceof Error ? err.message : String(err)}`;
   }
-  checks.push({ id: "web-root", type: "web", name: "D1疎通確認", status: webStatus, message: webMessage, checked_at: now });
+  checks.push({
+    id: "web-root",
+    type: "web",
+    name: "D1疎通確認",
+    status: webStatus,
+    message: webMessage,
+    checked_at: now,
+  });
 
   try {
     const row = await env.DB.prepare(
@@ -52,7 +61,11 @@ export async function checkHealth(env: Env): Promise<Response> {
     ).first<SheetsSyncSummary>();
 
     if (row && row.enabled_count > 0) {
-      const { enabled_count: enabledCount, error_count: errorCount, last_synced_at: lastSyncedAt } = row;
+      const {
+        enabled_count: enabledCount,
+        error_count: errorCount,
+        last_synced_at: lastSyncedAt,
+      } = row;
       let status: "ok" | "warning" | "critical";
       if (errorCount === 0) status = "ok";
       else if (errorCount < enabledCount) status = "warning";
